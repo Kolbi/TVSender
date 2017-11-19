@@ -1,3 +1,3 @@
 # TVSender
 
-define <SENDERNAME> TVSender <Channel> [<SuchName> <FavoritNr>]
+define SENDERNAME TVSender CHANNEL [SuchName] [FavoritNr]
