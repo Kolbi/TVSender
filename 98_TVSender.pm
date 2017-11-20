@@ -537,7 +537,7 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     $stateformat = $stateformat =~ s/$regex/$subst/rg;
     $stateformat = $stateformat.'<tr id = "'.$name.'"> '
       .'<td width=100px ><a href="/fhem?detail='.$name.'"><img src='.$name.'_Logo width=96px ></a></td>'
-      .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger">'.$name.'_Channel</td>'
+      .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20.'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
       .'<td style="vertical-align: middle;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
       .'<td style="vertical-align: middle;;font-size: larger">'.$name.'_Title</td>'
     .'</tr></table>';
