@@ -35,9 +35,6 @@ Hier werden jeweils die Attribute
     * reading016104_Regex = Regex aus Internal (TVSender) für den DetailLink
     * reading016105_Name = $Sendermodulname."_Image“
     * reading016105_Regex = Regex aus Internal (TVSender) für das Image
-    * reading016102 = Time
-    * reading016103 = Description 
-    * reading016104 = DetailLink
-    * reading016105 = Image (Sendungsbild)
+    
 
 
