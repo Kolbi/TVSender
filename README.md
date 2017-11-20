@@ -68,5 +68,25 @@ bilden sie entsprechend in den 4 HTTPMOD Devices folgende Readings:
      2017-11-20 10:39:50   Das_Erste_Time  09:55 
      2017-11-20 10:39:50   Das_Erste_Title Sturm der Liebe 
 
-
+Damit diese Inahlte auch im einzelnen TVSender Device zur Verfügung stehen werden die Ereignisse der 4 HTTPMOD Devices überwacht und bei Änderung die entsprechenden Readings dem TV-Sender Device gepflegt:
+ - TV_Program_NEXT_Description 
+ - TV_Program_NEXT_DetailLink
+ - TV_Program_NEXT_Time
+ - TV_Program_NEXT_Title
+ - TV_Program_NOW_Description
+ - TV_Program_NOW_DetailLink
+ - TV_Program_NOW_Image
+ - TV_Program_NOW_Time
+ - TV_Program_NOW_Title
+ - TV_Program_PTNEXT_Description
+ - TV_Program_PTNEXT_DetailLink
+ - TV_Program_PTNEXT_Image
+ - TV_Program_PTNEXT_Time
+ - TV_Program_PTNEXT_Title
+ - TV_Program_PT_Description
+ - TV_Program_PT_Image
+ - TV_Program_PT_Time
+ - TV_Program_PT_Title
+ 
+ 
  
