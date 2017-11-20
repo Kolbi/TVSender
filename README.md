@@ -1,4 +1,4 @@
-#TVSender
+# TVSender
 TVSender ist im wesentlichen eher ein Macro bzw. Automatisierer.
 Es übernimmt die notwendigen Schritte um mit dem HTTPMOD Modul das TV-Programm für ausgewählte Sender abzufragen und anzuzeigen.
 Die daraus entstehenden Standards ermöglichen es gezielt und relativ einfach die entsprechenden userAttribute und Readings zu verändern.
