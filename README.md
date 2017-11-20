@@ -25,6 +25,10 @@ Nach ca. 3 Minuten werden die Readings der HTTPMOD Devices aktualisiert und die 
 
 ![SCREENSHOT](https://github.com/supernova1963/TVSender/blob/master/Screenshot%202017-11-20%20um%2012.58.38.png)
 
+## Funktionen bei dem Löschen eines TVSender Devices
+
+Wird ein TVSender Device gelöscht, werden die entsprechenden Readings userAttribute in den HTTPMOD devices ebenso enfernt, wie die zugehörige Zeilen in den stateFormat Attributen.
+
 ## Was und wie wird automatisiert?
 Basis ist ein TV Sender mit den zugeordneten Attributen (hier am Beispiel Das Erste)
 
