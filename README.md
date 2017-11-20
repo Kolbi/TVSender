@@ -21,7 +21,8 @@ Bespiel:
     set Das_Erste autoCreate 1
 
 die automatischen Erstellung bzw. Pflege der HTTPMOD Devices gestartet werden.
-Nach ca. 3 Minuten werden die Readings der HTTPMOD Devices aktualisiert und die aktuellen Daten angezeigt.
+Nach ca. 3 Minuten werden die Readings der HTTPMOD Devices aktualisiert und die aktuellen Daten angezeigt. Über den Raum "TV-Progamm" werden alle automatisch angelegte Devices angezeigt:
+
 ![SCREENSHOT](https://github.com/supernova1963/TVSender/blob/master/Screenshot%202017-11-20%20um%2012.58.38.png)
 
 ## Was und wie wird automatisiert?
@@ -109,5 +110,40 @@ Damit diese Inahlte auch im einzelnen TVSender Device zur Verfügung stehen werd
  - TV_Program_PT_Time
  - TV_Program_PT_Title
  
+ ## Anzeige-Formatierung für das TVSender Device
  
+ Das stateFormat Attribut des TV-Sender Device hat folgende (Vorgabe-) Definition:
+ 
+ ```
+ <table width=100% >
+    <tr>
+        <td style="text-align: center;background-color: #e0e0e0" colspan=3 >A  K  T  U  E  L  L</td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;width: 50px;font-size: larger" >TV_Program_NOW_Time</td><td style="vertical-align: top"><p><a href="/fhem?cmd=set%20Das_Erste%20Switch2Channel%201" style="font-weight: bold;font-size: larger">TV_Program_NOW_Title</a></p>TV_Program_NOW_Description</td>
+        <td style="vertical-align: top;width: 200px" >TV_Program_NOW_Image</td>
+    </tr>
+    <tr>
+        <td style="text-align: center;background-color: #e0e0e0" colspan=3 >A  N  S  C  H  L  I  E  S  S  E  N  D</td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;width:50px;font-size: larger" >TV_Program_NEXT_Time</td>
+        <td style="vertical-align: top"><p style="font-weight: bold;font-size: larger" >TV_Program_NEXT_Title</p>TV_Program_NEXT_Description</td>
+        <td style="vertical-align: top;width: 200px" >TV_Program_NEXT_Image</td>
+    </tr>
+    <tr>
+        <td style="text-align: center;background-color: #e0e0e0" colspan=3 >P  R  I  M  E    T  I  M  E</td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;width: 50px;font-size: larger" >TV_Program_PT_Time</td>
+        <td style="vertical-align: top"><p style="font-weight: bold;font-size: larger">TV_Program_PT_Title</p>TV_Program_PT_Description</td>
+        <td style="vertical-align: top;width: 200px" >TV_Program_PT_Image</td></tr><tr><td style="text-align: center;background-color: #e0e0e0" colspan=3 >D  A  N  A  C  H</td>
+    </tr>
+    <tr>
+        <td style="vertical-align:top;width: 50px;font-size: larger" >TV_Program_PTNEXT_Time</td>
+        <td style="vertical-align: top" ><p style="font-weight: bold;font-size: larger" >TV_Program_PTNEXT_Title</p>TV_Program_PTNEXT_Description</td><td style="vertical-align: top;width: 200px" >TV_Program_PTNEXT_Image</td></tr></table>
+```
+
+
+
  
