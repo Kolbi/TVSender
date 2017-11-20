@@ -42,7 +42,7 @@ my %TVSender_gets = (
 );
 
 use vars qw{$TVSender_version};
-$TVSender_version="0.01";
+$TVSender_version="0.02";
 
 sub TVSender_Initialize($) {
     my ($hash) = @_;
@@ -126,9 +126,9 @@ sub TVSender_Define($$) {
   ### SenderwechselBefehl_setzen ###
   $Senderwechselbefehl = "";
   foreach $i (0..length($Channel)-1) {
-    $Senderwechselbefehl = $Senderwechselbefehl."set ".AttrVal($name,"HarmonyDevice","")." command Number".substr($Channel, $i,1)."\;";
+    $Senderwechselbefehl = $Senderwechselbefehl.'set '.AttrVal($name,"HarmonyDevice","").' command Number'.substr($Channel, $i,0).';;';
   }
-  $Senderwechselbefehl = $Senderwechselbefehl."set ".AttrVal($name,"HarmonyDevice","")." command Select\;";
+  $Senderwechselbefehl = $Senderwechselbefehl.'set '.AttrVal($name,"HarmonyDevice","").' command Select;;';
   $attr{$name}{"SwitchCommand"} = $Senderwechselbefehl; #if (!defined($attr{$name}{"SwitchCommand"}));
   ### FavoritenNummerierungSortierung_setzten ###
   $NrFavorit = $Channel if (!defined($NrFavorit));
@@ -202,7 +202,8 @@ sub TVSender_Parameter_Change_Check ($$) {
   $httpmod_userattr = $httpmod_userattr =~ /$regex/g;
   my $httpmod_stateFormat = AttrVal($httpmoddevice,"stateFormat",undef);
   $regex = qr/<tr id = "$name.*$name\_Title<\/td><\/tr>/p;
-  #$httpmod_stateFormat = $httpmod_stateFormat ~= /$regex/g;
+  $httpmod_stateFormat = $httpmod_stateFormat =~ /$regex/g;
+
 
 
 
@@ -346,7 +347,7 @@ sub TVSender_Add_HTTPMOD_Device($$$$) {
   if (!$TV_Program_hash) {
     $httpmoddevice_url = InternalVal($name,$httpmoddevice.'_URL',undef);
     $errors = '';
-    $cmds = 'defmod '.$httpmoddevice.' HTTPMOD '.$httpmoddevice_url.' 60; '
+    $cmds = 'defmod '.$httpmoddevice.' HTTPMOD '.$httpmoddevice_url.' 120; '
       .'attr '.$httpmoddevice.' timeout 20;'
       .'attr '.$httpmoddevice.' alias '.$alias.':;'
       .'attr '.$httpmoddevice.' sortby '.$sort.';'
@@ -360,8 +361,8 @@ sub TVSender_Add_HTTPMOD_Device($$$$) {
       #Log3($name, 3, "Sucsessfully defined device $httpmoddevice!");
     }
     else {
-      Log3($name, 3, "Definition device: $httpmoddevice cause error: $errors !");
-      Log3($name, 3, $cmds);
+      Log3($name, 5, "Definition device: $httpmoddevice cause error: $errors !");
+      Log3($name, 5, $cmds);
       return "Fehler bei der Anlage des Devices $httpmoddevice !"
     }
   }
@@ -382,6 +383,9 @@ sub TVSender_Add_HTTPMOD_Device($$$$) {
     if (!defined(AttrVal($httpmoddevice,"enableControlSet",undef))) {
       $cmds = $cmds.'attr '.$httpmoddevice.' enableControlSet 1;';
     }
+    if (!defined(AttrVal($httpmoddevice,"event-on-update-reading",undef))) {
+      $cmds = $cmds.'attr '.$httpmoddevice.' event-on-update-reading .*_Title;;';
+    }
     if (!defined(AttrVal($httpmoddevice,"room",undef))) {
       $cmds = $cmds.'attr '.$httpmoddevice.' room TV-Programm;';
     }
@@ -391,8 +395,8 @@ sub TVSender_Add_HTTPMOD_Device($$$$) {
         #Log3($name, 3, "Sucsessfully checked device $httpmoddevice!");
       }
       else {
-        Log3($name, 3, "Check device: $httpmoddevice cause error: $errors !");
-        Log3($name, 3, $cmds);
+        Log3($name, 5, "Check device: $httpmoddevice cause error: $errors !");
+        Log3($name, 5, $cmds);
         return "Fehler bei der Prüfung des Devices $httpmoddevice !"
       }
     }
@@ -452,8 +456,8 @@ sub TVSender_Change_HTTPMOD_Device_userattr($$) {
       #Log3($name, 3, 'Sucsessfully set new userattr to '.$httpmoddevice.'!');
     }
     else {
-      Log3($name, 3, 'Definition of new useratrr to '.$httpmoddevice.' causes an error: '.$errors.'!');
-      Log3($name, 3, 'attr '.$httpmoddevice.' userattr '.$userattributneu.';');
+      Log3($name, 5, 'Definition of new useratrr to '.$httpmoddevice.' causes an error: '.$errors.'!');
+      Log3($name, 5, 'attr '.$httpmoddevice.' userattr '.$userattributneu.';');
     }
   }
   elsif (index($userattributneu,$userattribut) != -1) {
@@ -467,8 +471,8 @@ sub TVSender_Change_HTTPMOD_Device_userattr($$) {
         #Log3($name, 3, 'Sucsessfully update userattr to '.$httpmoddevice.'!');
     }
     else {
-        Log3($name, 3, 'Update of useratrr to '.$httpmoddevice.' causes an error: '.$errors.'!');
-        Log3($name, 3, 'attr '.$httpmoddevice.' userattr '.$userattribut.' '.$userattributneu.';');
+        Log3($name, 5, 'Update of useratrr to '.$httpmoddevice.' causes an error: '.$errors.'!');
+        Log3($name, 5, 'attr '.$httpmoddevice.' userattr '.$userattribut.' '.$userattributneu.';');
     }
   }
   else {
@@ -488,14 +492,14 @@ sub TVSender_Change_HTTPMOD_Device_userattr($$) {
     .'attr '.$httpmoddevice.' '.$readingsnamepart.'04Regex '.InternalVal($name,$clock.'_DetailLink_Regex','').';'
     .'attr '.$httpmoddevice.' '.$readingsnamepart.'05Name '.$name.'_Image'.';'
     .'attr '.$httpmoddevice.' '.$readingsnamepart.'05Regex '.InternalVal($name,$clock.'_Image_Regex','').';'
-    .'setreading '.$httpmoddevice.' '.$name.'_SwitchCommand '.AttrVal($name,'SwitchCommand','').';'
     .'setreading '.$httpmoddevice.' '.$name.'_Channel '.AttrVal($name,'Channel','').';'
-    .'setreading '.$httpmoddevice.' '.$name.'_Sort '.AttrVal($name,'sortby','').';';
+    .'setreading '.$httpmoddevice.' '.$name.'_Sort '.AttrVal($name,'sortby','').';'
+    .'setreading '.$httpmoddevice.' '.$name.'_SwitchCommand '.AttrVal($name,'SwitchCommand','').';';
 
   $errors = '';
   $errors = AnalyzeCommandChain (undef, $cmd);
   if (!defined($errors)) {
-    #Log3($name, 3, 'Sucsessfully new/changed attributs to '.$httpmoddevice.'!');
+    Log3($name, 3, 'Sucsessfully new/changed attributs to '.$httpmoddevice.'!');
   }
   else {
     Log3($name, 3, 'Definition new/changed attributs to/of '.$httpmoddevice.' cause error: '.$errors.'!');
@@ -518,7 +522,7 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     $stateformat = '<table width=100% >'
     .'<tr id = "'.$name.'"> '
       .'<td width=100px ><a href="/fhem?detail='.$name.'"><img src='.$name.'_Logo width=96px ></a></td>'
-      .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger">'.$name.'_Channel</td>'
+      .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20.'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
       .'<td style="vertical-align: middle;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
       .'<td style="vertical-align: middle;;font-size: larger">'.$name.'_Title</td>'
     .'</tr></table>';
@@ -560,8 +564,8 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     #Log3($name, 3, 'Sucsessfully new defined/changed stateFormat to '.$httpmoddevice.'!');
     }
   else {
-    Log3($name, 3, 'Definition new attributs/changed stateFormat to '.$httpmoddevice.' cause error: '.$errors.'!');
-    Log3($name, 3, $cmd);
+    Log3($name, 5, 'Definition new attributs/changed stateFormat to '.$httpmoddevice.' cause error: '.$errors.'!');
+    Log3($name, 5, $cmd);
   }
 }
 # userattr der HTTPMOD Devices des Senders löschen
@@ -602,7 +606,7 @@ sub TVSender_Delete_HTTPMOD_Device_userattr($$) {
         #Log3($name, 3, 'Sucsessfully update userattr to '.$httpmoddevice.'!');
     }
     else {
-        Log3($name, 3, 'Update of useratrr to '.$httpmoddevice.' causes an error: '.$errors.'!');
+        Log3($name, 5, 'Update of useratrr to '.$httpmoddevice.' causes an error: '.$errors.'!');
     }
     $cmd = ''
       .'deleteattr '.$httpmoddevice.' '.$readingsnamepart.'00Name;'
@@ -627,8 +631,8 @@ sub TVSender_Delete_HTTPMOD_Device_userattr($$) {
       #Log3($name, 3, 'Sucsessfully deleted attributs to '.$httpmoddevice.'!');
     }
     else {
-      Log3($name, 3, 'Delete attributs to/of '.$httpmoddevice.' cause error: '.$errors.'!');
-      Log3($name, 3, $cmd);
+      Log3($name, 5, 'Delete attributs to/of '.$httpmoddevice.' cause error: '.$errors.'!');
+      Log3($name, 5, $cmd);
     }
   }
 }
@@ -654,8 +658,8 @@ sub TVSender_Delete_HTTPMOD_Device_stateformat($$) {
     #Log3($name, 3, 'Sucsessfully deleted row of stateFormat to '.$httpmoddevice.'!');
     }
   else {
-    Log3($name, 3, 'Delete row of stateFormat '.$httpmoddevice.' cause error: '.$errors.'!');
-    Log3($name, 3, $cmd);
+    Log3($name, 5, 'Delete row of stateFormat '.$httpmoddevice.' cause error: '.$errors.'!');
+    Log3($name, 5, $cmd);
   }
 }
 
@@ -730,6 +734,8 @@ sub TVSender_Set($@) {
     my $opt = shift @param;
     my $value = join("", @param);
     my $httpmoddevice = '';
+    my $cmd = '';
+    my $errors = '';
     if(!defined($TVSender_sets{$opt})) {
         my @cList = keys %TVSender_sets;
         return "Unknown argument $opt, choose one of " . join(" ", @cList);
@@ -777,6 +783,7 @@ sub TVSender_Set($@) {
         }
       }
     }
+
 }
 
 sub TVSender_Attr(@) {
