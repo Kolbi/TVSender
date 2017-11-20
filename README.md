@@ -5,7 +5,7 @@ Die daraus entstehenden Standards ermöglichen es gezielt und relativ einfach di
 Die optische Ausgabeformatierung soll kein Ersatz für die wesentlich flexibleren ReadingGroup Devices sein. In einem weiteren Schritt wäre auch die Anlage und Pflege der ReadingGroups denkbar.
 ## Was und wie wird automatisiert?
 Basis ist ein TV Sender mit den zugeordneten Attributen (hier am Beispiel Das Erste)
-* Name: **Das_Erste**
+* Name: **Das_Erste** ($name)
 * Kanal (Nr. des TV Receivers): **161** ($Channel)
 * Suchbegriff des TV-Programm Anbieters: **Das%20Erste** ($ChannelName = "Das Erste")
 * Favoriten-Nr: **1** ($FavoritNr)
