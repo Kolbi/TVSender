@@ -114,7 +114,7 @@ Damit diese Inahlte auch im einzelnen TVSender Device zur Verfügung stehen werd
  
  Das stateFormat Attribut des TV-Sender Device hat folgende (Vorgabe-) Definition:
  
- ```
+ ````
  <table width=100% >
     <tr>
         <td style="text-align: center;background-color: #e0e0e0" colspan=3 >A  K  T  U  E  L  L</td>
@@ -141,8 +141,17 @@ Damit diese Inahlte auch im einzelnen TVSender Device zur Verfügung stehen werd
     </tr>
     <tr>
         <td style="vertical-align:top;width: 50px;font-size: larger" >TV_Program_PTNEXT_Time</td>
-        <td style="vertical-align: top" ><p style="font-weight: bold;font-size: larger" >TV_Program_PTNEXT_Title</p>TV_Program_PTNEXT_Description</td><td style="vertical-align: top;width: 200px" >TV_Program_PTNEXT_Image</td></tr></table>
-```
+        <td style="vertical-align: top" ><p style="font-weight: bold;font-size: larger" >TV_Program_PTNEXT_Title</p>TV_Program_PTNEXT_Description</td>
+        <td style="vertical-align: top;width: 200px" >TV_Program_PTNEXT_Image</td>
+    </tr>
+</table>
+        
+````
+
+## Anzeige-Formatierung bei den HTTPMOD Devices
+Das stateFormat Attribut des TV-Sender Device hat folgende (Vorgabe-) Definition:
+
+``` test ```
 
 
 
