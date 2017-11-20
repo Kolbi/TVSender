@@ -22,7 +22,7 @@ Bespiel:
 
 die automatischen Erstellung bzw. Pflege der HTTPMOD Devices gestartet werden.
 Nach ca. 3 Minuten werden die Readings der HTTPMOD Devices aktualisiert und die aktuellen Daten angezeigt.
-![SCREENSHOT](https://github.com/supernova1963/TVSender/blob/master/Screenshot%202017-11-20%20um%2012.43.43.png)
+![SCREENSHOT](https://github.com/supernova1963/TVSender/blob/master/Screenshot%202017-11-20%20um%2012.58.38.png)
 
 ## Was und wie wird automatisiert?
 Basis ist ein TV Sender mit den zugeordneten Attributen (hier am Beispiel Das Erste)
