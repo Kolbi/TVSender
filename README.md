@@ -167,9 +167,24 @@ Damit diese Inahlte auch im jeweiligen TVSender Device zur Verfügung stehen, we
 ````
 
 ## Anzeige-Formatierung bei den HTTPMOD Devices
-Das stateFormat Attribut des TV-Sender Device hat folgende (Vorgabe-) Definition:
+Das stateFormat Attribut der HTTPMOD Devices haben folgende (Vorgabe-) Definition.
+Jeder Sender hat eine Tabellenzeile. Diese wird in mit ID=$name in der Zeilendefinition **<tr ID=Das_Erste>** identifitierbar gemacht.
 
-``` test ```
+```<table width=100% >
+ <tr id = "Das_Erste"> 
+  <td width=100px ><a href="/fhem?detail=Das_Erste"><img src=Das_Erste_Logo width=96px ></a></td>
+  <td style="vertical-align: middle;width: 50px;text-align: center;font-size: larger"><a href="/fhem?cmd=set%20.Das_Erste%20Switch2Channel%201">Das_Erste_Channel</a></td>
+  <td style="vertical-align: middle;width: 50px;font-size: larger">Das_Erste_Time</td>
+  <td style="vertical-align: middle;font-size: larger">Das_Erste_Title</td>
+ </tr>
+ <tr id = "ZDF"> 
+  <td width=100px ><a href="/fhem?detail=ZDF"><img src=ZDF_Logo width=96px ></a></td>
+  <td style="vertical-align: middle;width: 50px;text-align: center;font-size: larger">ZDF_Channel</td>
+  <td style="vertical-align: middle;width: 50px;font-size: larger">ZDF_Time</td>
+  <td style="vertical-align: middle;font-size: larger">ZDF_Title</td>
+  </tr>
+  ...
+  </table> ```
 
 
 
