@@ -106,8 +106,8 @@ bilden sie entsprechend in den 4 HTTPMOD Devices folgende Readings:
          2017-11-20 10:39:50   Das_Erste_Time  09:55 
          2017-11-20 10:39:50   Das_Erste_Title Sturm der Liebe 
 
-## Pflege der der Readings im TVSender Device (Ereignisüberwachung TVSender_notify)
-Damit diese Inahlte auch im einzelnen TVSender Device zur Verfügung stehen werden die Ereignisse der 4 HTTPMOD Devices überwacht und bei Änderung die entsprechenden Readings dem TV-Sender Device gepflegt:
+## Pflege der der Readings im TVSender Device (TVSender_notify)
+Damit diese Inahlte auch im jeweiligen TVSender Device zur Verfügung stehen, werden die Ereignisse der 4 HTTPMOD Devices überwacht und bei Änderung die entsprechenden Readings dem TV-Sender Device gepflegt:
  - TV_Program_NEXT_Description 
  - TV_Program_NEXT_DetailLink
  - TV_Program_NEXT_Time
