@@ -30,6 +30,7 @@ Nach ca. 3 Minuten werden die Readings der HTTPMOD Devices aktualisiert und die 
 Wird ein TVSender Device gelöscht, werden die entsprechenden Readings userAttribute in den HTTPMOD devices ebenso enfernt, wie die zugehörige Zeilen in den stateFormat Attributen.
 
 ## Was und wie wird automatisiert?
+### TVSender Device:
 Basis ist ein TV Sender mit den zugeordneten Attributen (hier am Beispiel Das Erste)
 
  - Name: **Das_Erste** (Kommandozeilenparameter: $name)
@@ -39,7 +40,7 @@ Basis ist ein TV Sender mit den zugeordneten Attributen (hier am Beispiel Das Er
    
  OPTIONAL
  - Favoriten-Nr: **1** (Kommandozeilenparameter: $NrFavorit) 
- - Beschreibung (z.Zt. ohne Verwendung): **Das_Erste = Das Erste** (Attribut)
+ - Beschreibung (z.Zt. ohne Verwendung): **Das_Erste = Das Erste** (Attribut: $Description)
  - TV Receiver Device: **harmony_34915526** (Attribut: $HarmonyDevice)
  - Senderlogo lokal (z.Zt. ohne Verwendung): **default/tvlogos/Das_Erste.png** (Attribut: $Logo)
  - Kanalumschaltbefehl(e): 
@@ -48,12 +49,13 @@ Basis ist ein TV Sender mit den zugeordneten Attributen (hier am Beispiel Das Er
  - room       **TV-Programm** 
  - sortby     **0161** 
 
+### HTTPMOD Devices
 Mit diesen Angaben werden die HTTPMOD Devices erstellt bzw. gepflegt.
 
- - TV_Program_NOW
- - TV_Program_NEXT
- - TV_Program_PT
- - TV_Program_PTNEXT
+ - TV_Program_NOW (Internal: $TV_Program_NOW)
+ - TV_Program_NEXT (Internal: $TV_Program_NEXT)
+ - TV_Program_PT (Internal: $TV_Program_PT)
+ - TV_Program_PTNEXT (Internal: $TV_Program_PTNEXT)
  
 Hier werden für o.g. HTTPMOD Devices jeweils die Attribute erstellt:
 **userattr** mit dem standardisierten Namensaufbau:
@@ -124,7 +126,8 @@ Damit diese Inahlte auch im einzelnen TVSender Device zur Verfügung stehen werd
  - TV_Program_PT_Time
  - TV_Program_PT_Title
  
- ## Anzeige-Formatierung für das TVSender Device
+ ## Anzeige-Formatierung
+ ### TVSender Device
  
  Das stateFormat Attribut des TV-Sender Device hat folgende (Vorgabe-) Definition:
  
