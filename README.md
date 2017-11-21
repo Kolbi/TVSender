@@ -32,11 +32,21 @@ Wird ein TVSender Device gelöscht, werden die entsprechenden Readings userAttri
 ## Was und wie wird automatisiert?
 Basis ist ein TV Sender mit den zugeordneten Attributen (hier am Beispiel Das Erste)
 
- - Name: **Das_Erste** ($name)
- - Kanal (Nr. des TV Receivers): **161** ($Channel)
+ - Name: **Das_Erste** (Kommandozeilenparameter: $name)
+ - Kanal (Nr. des TV Receivers): **161** (Kommandozeilenparameter: $Channel)
  - Suchbegriff des TV-Programm Anbieters:
-   **Das%20Erste** ($ChannelName = "Das Erste")
- - Favoriten-Nr: **1** ($FavoritNr) 
+   **Das%20Erste** (Kommandozeilenparameter: $ChannelName = "Das Erste")
+   
+ OPTIONAL
+ - Favoriten-Nr: **1** (Kommandozeilenparameter: $NrFavorit) 
+ - Beschreibung (z.Zt. ohne Verwendung): **Das_Erste = Das Erste** (Attribut)
+ - TV Receiver Device: **harmony_34915526** (Attribut: $HarmonyDevice)
+ - Senderlogo lokal (z.Zt. ohne Verwendung): **default/tvlogos/Das_Erste.png** (Attribut: $Logo)
+ - Kanalumschaltbefehl(e): 
+   **set harmony_34915526 command Number;;set harmony_34915526 command Number;;set harmony_34915526 command Number;;set harmony_34915526 command Select;;** (Attribut: $SwitchCommand) 
+   group      **TV-Sender** 
+   room       **TV-Programm** 
+   sortby     **0161** 
 
 Mit diesen Angaben werden die HTTPMOD Devices erstellt bzw. gepflegt.
 
