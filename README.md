@@ -165,8 +165,7 @@ Damit diese Inahlte auch im jeweiligen TVSender Device zur Verfügung stehen, we
 </table>
         
 ````
-
-## Anzeige-Formatierung bei den HTTPMOD Devices
+### Anzeige-Formatierung bei den HTTPMOD Devices
 Das stateFormat Attribut der HTTPMOD Devices haben folgende (Vorgabe-) Definition.
 Jeder Sender hat eine Tabellenzeile. Diese wird in mit ID=$name in der Zeilendefinition **\<tr ID=Das_Erste\>** identifitierbar gemacht.
 
@@ -183,7 +182,6 @@ Jeder Sender hat eine Tabellenzeile. Diese wird in mit ID=$name in der Zeilendef
   <td style="vertical-align: middle;width: 50px;font-size: larger">ZDF_Time</td>
   <td style="vertical-align: middle;font-size: larger">ZDF_Title</td>
   </tr>
-  ...
   </table> ```
 
 
