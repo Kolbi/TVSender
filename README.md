@@ -182,8 +182,6 @@ Jeder Sender hat eine Tabellenzeile. Diese wird in mit ID=$name in der Zeilendef
   <td style="vertical-align: middle;width: 50px;font-size: larger">ZDF_Time</td>
   <td style="vertical-align: middle;font-size: larger">ZDF_Title</td>
   </tr>
-  </table> ```
-
-
-
- 
+  </table> 
+```
+... demnächst mehr!
