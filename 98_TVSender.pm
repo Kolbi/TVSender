@@ -5,32 +5,8 @@ use warnings;
 
 my %TVSender_sets = (
 "AutoCreate"     => "AutoCreate:0,1",
-"Switch2Channel" => "Switch2Channel:1"
-# "<ChannelName:
-#13th%20Street|3sat|A&E|Animal%20Planet|Anixe%20HD|ARD%20ALPHA|ARTE|ATV%202|ATV|AXN|
-#Bayern|BBC%20Entertainment|BBC%20World|Beate%20Uhse%20TV|Bibel%20TV|Boomerang|
-#Cartoon%20Network|Classica|CNN|Comedy%20Central|Das%20Erste|Discovery%20Channel|Disney%20Cinemagic|
-#Disney%20Junior|Disney%20XD|Disney|DMAX|
-#E!|Euronews|Eurosport%202|Eurosport|
-#FOX|France%202|France%203|Franken%20TV|
-#Goldstar%20TV|
-#Hamburg1|Heimatkanal|history|HR|HSE24|
-#Junior|
-#Kabel%201%20Doku|Kabel%20eins%20Classics|Kabel%20eins|KiKa|Kinowelt|
-#MDR|MTV|München%20TV|
-#N24%20Doku|N24|NAT%20GEO%20Wild|National%20Geographic|NDR|NICK|NITRO|N-TV|
-#ONE|ORF%201|ORF%202|ORF%203|ORF%20Sport%20+|
-#Phoenix|Planet|Playboy%20TV|Pro7%20FUN|Pro7%20MAXX|Pro7|Puls%204|
-#QVC|RBB|
-#Romance%20TV|RTL%202|RTL%20Crime|RTL%20Living|RTL%20Passion|RTL%20plus|RTL|
-#SAT.1%20emotions|SAT.1%20Gold|SAT.1|Schweiz%201|Schweiz%202|Servus%20TV|Silverline|sixx|Sky%201|Sky%20Arts|Sky%20Atlantic%20HD|Sky%20Cinema%20+1|Sky%20Cinema%20+24|Sky%20Cinema%20Action|Sky%20Cinema%20Comedy|Sky%20Cinema%20Emotion|Sky%20Cinema%20Family|Sky%20Cinema%20Hits|Sky%20Cinema%20Nostalgie|Sky%20Cinema|Sky%20Fußball%20Bundesliga|Sky%20Krimi|Sky%20Sport%201|Sky%20Sport%202|Sky%20Sport%20Austria|Sky%20Sport%20News%20HD|Sonnenklar%20TV|Spiegel%20TV%20Geschichte|Spiegel%20TV%20Wissen|Sport%201|Sport1+%20US%20HD|Sport1+|Spreekanal|Super%20RTL|SWR%20BW|SWR%20RP|Syfy|
-#Tagesschau24|TELE%205|Tide%20TV|TLC|TNT%20Comedy|TNT%20Film|TNT%20Serie|Toggo%20Plus|TV%20Berlin|
-#Universal%20Channel|
-#VIVA|VOX|
-#WDR|
-#ZDF%20info|ZDF%20neo|ZDF|Zee%20One>"
-
-#"ChannelName"   => "ChannelName:",
+"Switch2Channel" => "Switch2Channel:1",
+"UpdateAll"      => "UpdateAll:1"
 #"NrFavorit"     => "NrFavorit:"
 );
 
@@ -189,27 +165,35 @@ sub TVSender_Define($$) {
   return undef;
 }
 
-sub TVSender_Parameter_Change_Check ($$) {
-  my ($hash,$httpmoddevice) = @_;
+sub TVSender_Parameter_update ($) {
+  my ($hash) = @_;
   my $name = $hash->{"NAME"};
-  my $errors = "";
-  my $cmds = "";
-  my $regex = "";
-  my $subst = "";
-  my $httpmod_readingspart = 'reading'.substr("0000".AttrVal($name,"Channel",undef), -4, 4);
-  $regex = qr/$httpmod_readingspart\d\d(?:Name\s|Regex\s|Regex|Name)/p;
-  my $httpmod_userattr = AttrVal($httpmoddevice,"userattr",undef);
-  $httpmod_userattr = $httpmod_userattr =~ /$regex/g;
-  my $httpmod_stateFormat = AttrVal($httpmoddevice,"stateFormat",undef);
-  $regex = qr/<tr id = "$name.*$name\_Title<\/td><\/tr>/p;
-  $httpmod_stateFormat = $httpmod_stateFormat =~ /$regex/g;
+  my $nameNOW = InternalVal($name,"TV_Program_NOW","TV_Program_NOW");
+  my $nameNEXT = InternalVal($name,"TV_Program_NEXT","TV_Program_NEXT");
+  my $namePT = InternalVal($name,"TV_Program_PT","TV_Program_PT");
+  my $namePTNEXT = InternalVal($name,"TV_Program_PTNEXT","TV_Program_PTNEXT");
+
+  TVSender_Add_HTTPMOD_Device($hash,$nameNOW,"Es läuft",1);
+  TVSender_Add_HTTPMOD_Device($hash,$nameNOW,"Anschliessend",2);
+  TVSender_Add_HTTPMOD_Device($hash,$nameNOW,"Zur PrimeTime",3);
+  TVSender_Add_HTTPMOD_Device($hash,$nameNOW,"Danach",4);
+  TVSender_Change_HTTPMOD_Device_userattr($hash,$nameNOW,'');
+  TVSender_Change_HTTPMOD_Device_userattr($hash,$nameNEXT,'');
+  TVSender_Change_HTTPMOD_Device_userattr($hash,$namePT,'');
+  TVSender_Change_HTTPMOD_Device_userattr($hash,$namePTNEXT,'');
+  TVSender_Change_HTTPMOD_Device_stateformat($hash,$nameNOW);
+  TVSender_Change_HTTPMOD_Device_stateformat($hash,$nameNEXT);
+  TVSender_Change_HTTPMOD_Device_stateformat($hash,$namePT);
+  TVSender_Change_HTTPMOD_Device_stateformat($hash,$namePTNEXT);
+  TVSender_stateFormat($hash);
+
+
 
 
 
 
 }
-
-
+# Überwachung der 4 HTTPMOD Devices zur Pflege der Readings in TVSender Device
 sub TVSender_Notify($$) {
     my ($own_hash, $dev_hash) = @_;
     my $ownName = $own_hash->{NAME}; # own name / hash
@@ -375,7 +359,7 @@ sub TVSender_Add_HTTPMOD_Device($$$$) {
       $cmds = $cmds.'attr '.$httpmoddevice.' alias Es läuft:;';
     }
     if (!defined(AttrVal($httpmoddevice,"sortby",undef))) {
-      $cmds = $cmds.'attr '.$httpmoddevice.' sortby 1;';
+      $cmds = $cmds.'attr '.$httpmoddevice.' sortby '.$sort.';';
     }
     if (!defined(AttrVal($httpmoddevice,"verbose",undef))) {
       $cmds = $cmds.'attr '.$httpmoddevice.' verbose 3;';
@@ -460,7 +444,7 @@ sub TVSender_Change_HTTPMOD_Device_userattr($$) {
       Log3($name, 5, 'attr '.$httpmoddevice.' userattr '.$userattributneu.';');
     }
   }
-  elsif (index($userattributneu,$userattribut) != -1) {
+  elsif (index($userattribut,$userattributneu) != -1) {
     #userattr wird ergänzt, wenn die neuen nicht oder nur teilweise enthalten sind
     $regex = qr/$readingsnamepart\d\d(?:Name\s|Regex\s|Regex|Name)/p;
     $subst = '';
@@ -476,7 +460,16 @@ sub TVSender_Change_HTTPMOD_Device_userattr($$) {
     }
   }
   else {
-      #Log3($name, 3, 'userattr to '.$httpmoddevice.' is up-to-date!');
+    #userattr bleibt unverändert, da bereits vorhanden
+    $errors = '';
+    $errors = AnalyzeCommandChain (undef, 'attr '.$httpmoddevice.' userattr '.$userattribut.';');
+    if (!defined($errors)) {
+        #Log3($name, 3, 'Sucsessfully update userattr to '.$httpmoddevice.'!');
+    }
+    else {
+        Log3($name, 5, 'Update of useratrr to '.$httpmoddevice.' causes an error: '.$errors.'!');
+        Log3($name, 5, 'attr '.$httpmoddevice.' userattr '.$userattribut.' '.$userattributneu.';');
+    }
   }
   # Definition der Name/Regesx Wertepaare der userAttribute wir erstellt bzw. aktualisiert
   $cmd = ''
@@ -532,6 +525,8 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     $regex = qr/<tr id = "$name.*$name\_Title<\/td><\/tr>/p;
     $subst = '';
     $stateformat = $stateformat =~ s/$regex/$subst/rg;
+    $regex = qr/<\/table>/p;
+    $stateformat = $stateformat =~ s/$regex/$subst/rg;
     $regex = qr/;/p;
     $subst = ';;';
     $stateformat = $stateformat =~ s/$regex/$subst/rg;
@@ -552,7 +547,7 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     $stateformat = $stateformat =~ s/$regex/$subst/rg;
     $stateformat = $stateformat.'<tr id = "'.$name.'"> '
       .'<td width=100px ><a href="/fhem?detail='.$name.'"><img src='.$name.'_Logo width=96px ></a></td>'
-      .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger">'.$name.'_Channel</td>'
+      .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20.'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
       .'<td style="vertical-align: middle;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
       .'<td style="vertical-align: middle;;font-size: larger">'.$name.'_Title</td>'
     .'</tr></table>';
@@ -662,7 +657,7 @@ sub TVSender_Delete_HTTPMOD_Device_stateformat($$) {
     Log3($name, 5, $cmd);
   }
 }
-
+# Löschen des Senders und entfernen der Einträge in den HTTPMOD Devices
 sub TVSender_Undef($$) {
     my ($hash, $arg) = @_;
     my $name = $hash->{"NAME"};
@@ -702,12 +697,12 @@ sub TVSender_Undef($$) {
   #  }
     return "";
 }
-
+# Umbenennung ist nicht möglich
 sub TVSender_Rename($$) {
   my ( $new_name, $old_name) = @_;
   return "Diese Funtion ist z.Zt. nicht möglich, bitte Device: $old_name löschen und als $new_name neu anlegen!"
 }
-
+#
 sub TVSender_Get($@) {
     my ($hash, @param) = @_;
     return 'get TVSender needs at least one argument' if (int(@param) < 2);
@@ -783,7 +778,12 @@ sub TVSender_Set($@) {
         }
       }
     }
-
+    if ($opt eq 'UpdateAll') {
+      if ($value eq "1") {
+        #fhem ('"'.AttrVal($name,"SwitchCommand","").'"');
+        TVSender_Parameter_update ($hash);
+      }
+    }
 }
 
 sub TVSender_Attr(@) {
