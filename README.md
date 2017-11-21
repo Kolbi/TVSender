@@ -44,9 +44,9 @@ Basis ist ein TV Sender mit den zugeordneten Attributen (hier am Beispiel Das Er
  - Senderlogo lokal (z.Zt. ohne Verwendung): **default/tvlogos/Das_Erste.png** (Attribut: $Logo)
  - Kanalumschaltbefehl(e): 
    **set harmony_34915526 command Number;;set harmony_34915526 command Number;;set harmony_34915526 command Number;;set harmony_34915526 command Select;;** (Attribut: $SwitchCommand) 
-   group      **TV-Sender** 
-   room       **TV-Programm** 
-   sortby     **0161** 
+ - group      **TV-Sender** 
+ - room       **TV-Programm** 
+ - sortby     **0161** 
 
 Mit diesen Angaben werden die HTTPMOD Devices erstellt bzw. gepflegt.
 
