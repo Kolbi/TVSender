@@ -298,7 +298,7 @@ sub TVSender_stateFormat($) {
     .'<td style="vertical-align: top;;width: 200px" >'.$nameNOW.'_Image</td></tr>'
     .'<tr><td style="text-align: center;;background-color: #e0e0e0" colspan=3 >A  N  S  C  H  L  I  E  S  S  E  N  D</td></tr>'
     .'<tr><td style="vertical-align: top;;text-align: right;;width:50px;;font-size: larger" >'.$nameNEXT.'_Time</td>'
-    .'<td style="vertical-align: top;;text-align: left;"><p style="text-align: left;;font-weight: bold;;font-size: larger" >'.$nameNEXT.'_Title</p>'.$nameNEXT.'_Description</td>'
+    .'<td style="vertical-align: top;;text-align: left"><p style="text-align: left;;font-weight: bold;;font-size: larger" >'.$nameNEXT.'_Title</p>'.$nameNEXT.'_Description</td>'
     .'<td style="vertical-align: top;;width: 200px" >'.$nameNEXT.'_Image</td></tr>'
     .'<tr><td style="text-align: center;;background-color: #e0e0e0" colspan=3 >P  R  I  M  E    T  I  M  E</td></tr>'
     .'<tr><td style="vertical-align: top;;text-align: right;;width: 50px;;font-size: larger" >'.$namePT.'_Time</td>'
