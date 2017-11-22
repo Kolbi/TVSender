@@ -11,7 +11,7 @@ Z.Zt. funktioniert die automatische Sortierung der Sender in den HTTPMOD Devices
 
 ## Definition
 **define** < name> **TVSender** < Channel > \[< ChannelName > < FavoritNr > \]
-Am Beispiel "Das Erste", da hier ein Leerzeichen im Suchbegriff (siehe [Aktuelle Suchliste](https://github.com/supernova1963/TVSender/wiki/Aktuelle-Sendersuchliste) = ChannelName ist, das über die Kommandozeile den folgenden Parameter kennzeichnet durch ein %20 ersetzt werden muss:
+Am Beispiel "Das Erste", da hier ein Leerzeichen im Suchbegriff (siehe [Aktuelle Suchliste](https://github.com/supernova1963/TVSender/wiki/Aktuelle-Sendersuchliste) )= ChannelName ist, das über die Kommandozeile den folgenden Parameter kennzeichnet durch ein %20 ersetzt werden muss:
 
     define Das_Erste TVSender 161 Das%20Erste 1
 
