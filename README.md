@@ -6,9 +6,12 @@ Die optische Ausgabeformatierung soll kein Ersatz für die wesentlich flexiblere
 
 Eine ausführlichere Beschreibung befindet sich im **[Wiki](https://github.com/supernova1963/TVSender/wiki)**.
 
+A C H T U N G: 
+Z.Zt. funktioniert die automatische Sortierung der Sender in den HTTPMOD Devices noch nicht (jeder hinzugefügte bzw. mit updateAll aktualisierte Sender wird unten angehängt! Wer auf eine geordnete Ausgabe in den HTTPMOD Devices Wert legt, sollte die Sender in der gewünschten Reihenfolge anlegen!
+
 ## Definition
 **define** < name> **TVSender** < Channel > \[< ChannelName > < FavoritNr > \]
-Am Beispiel "Das Erste", da hier ein Leerzeichen im Suchbegriff = ChannelName ist, das über die Kommandozeile den folgenden Parameter kennzeichnet durch ein %20 ersetzt werden muss:
+Am Beispiel "Das Erste", da hier ein Leerzeichen im Suchbegriff (siehe [Aktuelle Suchliste](https://github.com/supernova1963/TVSender/wiki/Aktuelle-Sendersuchliste) = ChannelName ist, das über die Kommandozeile den folgenden Parameter kennzeichnet durch ein %20 ersetzt werden muss:
 
     define Das_Erste TVSender 161 Das%20Erste 1
 
