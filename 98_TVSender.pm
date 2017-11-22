@@ -18,7 +18,7 @@ my %TVSender_gets = (
 );
 
 use vars qw{$TVSender_version};
-$TVSender_version="0.02";
+$TVSender_version="0.0.3";
 
 sub TVSender_Initialize($) {
     my ($hash) = @_;
@@ -293,20 +293,20 @@ sub TVSender_stateFormat($) {
   my $namePTNEXT = InternalVal($name,"TV_Program_PTNEXT","TV_Program_PTNEXT");
   my $stateformat = '<table width=100% >'
     .'<tr><td style="text-align: center;;background-color: #e0e0e0" colspan=3 >A  K  T  U  E  L  L</td></tr>'
-    .'<tr><td style="vertical-align: top;;width: 50px;;font-size: larger" >'.$nameNOW.'_Time</td>'
-    .'<td style="vertical-align: top"><p><a href="/fhem?cmd=set%20'.$name.'%20Switch2Channel%201" style="font-weight: bold;;font-size: larger">'.$nameNOW.'_Title</a></p>'.$nameNOW.'_Description</td>'
+    .'<tr><td style="vertical-align: top;;text-align: left;;width: 50px;;font-size: larger" >'.$nameNOW.'_Time</td>'
+    .'<td style="vertical-align: top;;text-align: left"><p><a href="/fhem?cmd=set%20'.$name.'%20Switch2Channel%201" style="text-align: left;;font-weight: bold;;font-size: larger">'.$nameNOW.'_Title</a></p>'.$nameNOW.'_Description</td>'
     .'<td style="vertical-align: top;;width: 200px" >'.$nameNOW.'_Image</td></tr>'
     .'<tr><td style="text-align: center;;background-color: #e0e0e0" colspan=3 >A  N  S  C  H  L  I  E  S  S  E  N  D</td></tr>'
-    .'<tr><td style="vertical-align: top;;width:50px;;font-size: larger" >'.$nameNEXT.'_Time</td>'
-    .'<td style="vertical-align: top"><p style="font-weight: bold;;font-size: larger" >'.$nameNEXT.'_Title</p>'.$nameNEXT.'_Description</td>'
+    .'<tr><td style="vertical-align: top;;text-align: right;;width:50px;;font-size: larger" >'.$nameNEXT.'_Time</td>'
+    .'<td style="vertical-align: top;;text-align: left;"><p style="text-align: left;;font-weight: bold;;font-size: larger" >'.$nameNEXT.'_Title</p>'.$nameNEXT.'_Description</td>'
     .'<td style="vertical-align: top;;width: 200px" >'.$nameNEXT.'_Image</td></tr>'
     .'<tr><td style="text-align: center;;background-color: #e0e0e0" colspan=3 >P  R  I  M  E    T  I  M  E</td></tr>'
-    .'<tr><td style="vertical-align: top;;width: 50px;;font-size: larger" >'.$namePT.'_Time</td>'
-    .'<td style="vertical-align: top"><p style="font-weight: bold;;font-size: larger">'.$namePT.'_Title</p>'.$namePT.'_Description</td>'
+    .'<tr><td style="vertical-align: top;;text-align: right;;width: 50px;;font-size: larger" >'.$namePT.'_Time</td>'
+    .'<td style="vertical-align: top;; text-align: left"><p style="text-align: left;;font-weight: bold;;font-size: larger">'.$namePT.'_Title</p>'.$namePT.'_Description</td>'
     .'<td style="vertical-align: top;;width: 200px" >'.$namePT.'_Image</td></tr>'
     .'<tr><td style="text-align: center;;background-color: #e0e0e0" colspan=3 >D  A  N  A  C  H</td></tr>'
-    .'<tr><td style="vertical-align:top;;width: 50px;;font-size: larger" >'.$namePTNEXT.'_Time</td>'
-    .'<td style="vertical-align: top" ><p style="font-weight: bold;;font-size: larger" >'.$namePTNEXT.'_Title</p>'.$namePTNEXT.'_Description</td>'
+    .'<tr><td style="vertical-align:top;;text-align: right;;width: 50px;;font-size: larger" >'.$namePTNEXT.'_Time</td>'
+    .'<td style="vertical-align: top;; text-align: left" ><p style="text-align: left;;font-weight: bold;;font-size: larger" >'.$namePTNEXT.'_Title</p>'.$namePTNEXT.'_Description</td>'
     .'<td style="vertical-align: top;;width: 200px" >'.$namePTNEXT.'_Image</td></tr></table>';
   $cmd = 'attr '.$name.' stateFormat '.$stateformat;
   $errors = '';
@@ -532,9 +532,9 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     $stateformat = $stateformat =~ s/$regex/$subst/rg;
     $stateformat = $stateformat.'<tr id = "'.$name.'"> '
       .'<td width=100px ><a href="/fhem?detail='.$name.'"><img src='.$name.'_Logo width=96px ></a></td>'
-      .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20.'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
-      .'<td style="vertical-align: middle;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
-      .'<td style="vertical-align: middle;;font-size: larger">'.$name.'_Title</td>'
+      .'<td style="vertical-align: middle;;text-align: left;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
+      .'<td style="vertical-align: middle;;text-align: left;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
+      .'<td style="vertical-align: middle;;text-align: left;;font-size: larger">'.$name.'_Title</td>'
     .'</tr></table>';
   }
   else {
@@ -547,9 +547,9 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     $stateformat = $stateformat =~ s/$regex/$subst/rg;
     $stateformat = $stateformat.'<tr id = "'.$name.'"> '
       .'<td width=100px ><a href="/fhem?detail='.$name.'"><img src='.$name.'_Logo width=96px ></a></td>'
-      .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20.'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
-      .'<td style="vertical-align: middle;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
-      .'<td style="vertical-align: middle;;font-size: larger">'.$name.'_Title</td>'
+      .'<td style="vertical-align: middle;;text-align: left;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
+      .'<td style="vertical-align: middle;;text-align: left;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
+      .'<td style="vertical-align: middle;;text-align: left;;font-size: larger">'.$name.'_Title</td>'
     .'</tr></table>';
   }
   $cmd = 'attr '.$httpmoddevice.' stateFormat '.$stateformat.';';
@@ -731,6 +731,8 @@ sub TVSender_Set($@) {
     my $httpmoddevice = '';
     my $cmd = '';
     my $errors = '';
+    my $regex = "";
+    my $subst = "":
     if(!defined($TVSender_sets{$opt})) {
         my @cList = keys %TVSender_sets;
         return "Unknown argument $opt, choose one of " . join(" ", @cList);
@@ -767,6 +769,9 @@ sub TVSender_Set($@) {
       if ($value eq "1") {
         #fhem ('"'.AttrVal($name,"SwitchCommand","").'"');
         $cmd = AttrVal($name,"SwitchCommand","");
+        $regex = qr/;/p;
+        $subst = ';;';
+        $cnd = $cmd =~ s/$regex/$subst/rg;
         $errors = '';
         $errors = AnalyzeCommandChain (undef, $cmd);
         if (!defined($errors)) {
