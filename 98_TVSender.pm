@@ -18,7 +18,7 @@ my %TVSender_gets = (
 );
 
 use vars qw{$TVSender_version};
-$TVSender_version="0.0.3";
+$TVSender_version="0.04";
 
 sub TVSender_Initialize($) {
     my ($hash) = @_;
@@ -731,8 +731,6 @@ sub TVSender_Set($@) {
     my $httpmoddevice = '';
     my $cmd = '';
     my $errors = '';
-    my $regex = "";
-    my $subst = "":
     if(!defined($TVSender_sets{$opt})) {
         my @cList = keys %TVSender_sets;
         return "Unknown argument $opt, choose one of " . join(" ", @cList);
@@ -769,9 +767,6 @@ sub TVSender_Set($@) {
       if ($value eq "1") {
         #fhem ('"'.AttrVal($name,"SwitchCommand","").'"');
         $cmd = AttrVal($name,"SwitchCommand","");
-        $regex = qr/;/p;
-        $subst = ';;';
-        $cnd = $cmd =~ s/$regex/$subst/rg;
         $errors = '';
         $errors = AnalyzeCommandChain (undef, $cmd);
         if (!defined($errors)) {
