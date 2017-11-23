@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 # This script was developed by Thorsten from the FHEM forum: https://forum.fhem.de/index.php/topic,69132.msg606372.html#msg606372
-# Creates control file for tradfri FHEM modul
 # https://github.com/peterkappelt/Tradfri-FHEM/blob/master/src/build-controls-file.pl
+# Creates control file for TVSender FHEM modul
 
 use IO::File;
 use strict;
@@ -44,7 +44,7 @@ foreach my $fspec (@filelist2) {
   closedir(DH);
 }
 
-my %controls = (tradfri=>0);
+my %controls = (TVSender=>0);
 foreach my $k (keys %controls) {
   my $fname = "controls_$k.txt";
   $controls{$k} = new IO::File ">$fname" || die "Can't open $fname: $!\n";
