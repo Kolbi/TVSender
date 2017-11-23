@@ -813,7 +813,11 @@ sub TVSender_Attr(@) {
 1;
 
 =pod
- =begin html
+=item helper
+=item summary TVSender
+=item summary_DE TVSender
+
+=begin html
 
  <a name="TVSender"></a>
  <h3>TVSender</h3>
