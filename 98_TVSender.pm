@@ -11,14 +11,15 @@ my %TVSender_sets = (
 );
 
 my %TVSender_gets = (
-"Aktuell"    => "NOW",
-"Danach"    => "NEXT",
-"PrimeTime"    => "PT",
-"Später"  => "PTNEXT"
+"na"    => "1"
+#"Aktuell"    => "NOW",
+#"Danach"    => "NEXT",
+#"PrimeTime"    => "PT",
+#"Später"  => "PTNEXT"
 );
 
 use vars qw{$TVSender_version};
-$TVSender_version="0.04";
+$TVSender_version="0.1.0";
 
 sub TVSender_Initialize($) {
     my ($hash) = @_;
@@ -165,6 +166,19 @@ sub TVSender_Define($$) {
   return undef;
 }
 
+sub TVSender_Sort_HTTPMOD_Device_stateformat($$) {
+  my ($hash,$httpmoddevice) = @_;
+  my $name = $hash->{"NAME"};
+  my $cmd = '';
+  my $errors = '';
+  my $stateformat = AttrVal($httpmoddevice,'stateFormat','');
+  my $regex = qr/<tr id = "$name.*$name\_Title<\/td><\/tr>/p;
+  my $stateformat_exists = $stateformat =~ /$regex/g;
+  my %sorter = '';
+
+}
+
+# Alle Definitionen erneut ausführen
 sub TVSender_Parameter_update ($) {
   my ($hash) = @_;
   my $name = $hash->{"NAME"};
@@ -186,12 +200,6 @@ sub TVSender_Parameter_update ($) {
   TVSender_Change_HTTPMOD_Device_stateformat($hash,$namePT);
   TVSender_Change_HTTPMOD_Device_stateformat($hash,$namePTNEXT);
   TVSender_stateFormat($hash);
-
-
-
-
-
-
 }
 # Überwachung der 4 HTTPMOD Devices zur Pflege der Readings in TVSender Device
 sub TVSender_Notify($$) {
@@ -731,11 +739,12 @@ sub TVSender_Set($@) {
     my $httpmoddevice = '';
     my $cmd = '';
     my $errors = '';
+    my $regex = "";
+    my $subst = "";
     if(!defined($TVSender_sets{$opt})) {
         my @cList = keys %TVSender_sets;
         return "Unknown argument $opt, choose one of " . join(" ", @cList);
     }
-    #$hash->{STATE} = $TVSender_sets{$opt} = $value;
     if ($opt eq 'AutoCreate') {
         if ($value eq '1') {
           $httpmoddevice = InternalVal($name,'TV_Program_NOW','TV_Program_NOW');
@@ -767,6 +776,9 @@ sub TVSender_Set($@) {
       if ($value eq "1") {
         #fhem ('"'.AttrVal($name,"SwitchCommand","").'"');
         $cmd = AttrVal($name,"SwitchCommand","");
+        $regex = qr/;/p;
+        $subst = ';;';
+        $cmd = $cmd =~ s/$regex/$subst/rg;
         $errors = '';
         $errors = AnalyzeCommandChain (undef, $cmd);
         if (!defined($errors)) {
