@@ -177,10 +177,10 @@ sub TVSender_Parameter_update ($) {
   TVSender_Add_HTTPMOD_Device($hash,$nameNOW,"Anschliessend",2);
   TVSender_Add_HTTPMOD_Device($hash,$nameNOW,"Zur PrimeTime",3);
   TVSender_Add_HTTPMOD_Device($hash,$nameNOW,"Danach",4);
-  TVSender_Change_HTTPMOD_Device_userattr($hash,$nameNOW,'');
-  TVSender_Change_HTTPMOD_Device_userattr($hash,$nameNEXT,'');
-  TVSender_Change_HTTPMOD_Device_userattr($hash,$namePT,'');
-  TVSender_Change_HTTPMOD_Device_userattr($hash,$namePTNEXT,'');
+  TVSender_Change_HTTPMOD_Device_userattr($hash,$nameNOW);
+  TVSender_Change_HTTPMOD_Device_userattr($hash,$nameNEXT);
+  TVSender_Change_HTTPMOD_Device_userattr($hash,$namePT);
+  TVSender_Change_HTTPMOD_Device_userattr($hash,$namePTNEXT);
   TVSender_Change_HTTPMOD_Device_stateformat($hash,$nameNOW);
   TVSender_Change_HTTPMOD_Device_stateformat($hash,$nameNEXT);
   TVSender_Change_HTTPMOD_Device_stateformat($hash,$namePT);
