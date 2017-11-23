@@ -9,7 +9,8 @@ use strict;
 use warnings;
 
 my @filelist2 = (
-  "FHEM/.*.pm",
+#  "FHEM/.*.pm", # Durchsucht den ganzen FHEM_Ordner nach .pm-Dateien
+   "FHEM/98_TVSender.pm",
 );
 
 
