@@ -3,12 +3,7 @@ use strict;
 use warnings;
 
 
-my %TVSender_sets = (
-"AutoCreate"     => "AutoCreate:0,1",
-"Switch2Channel" => "Switch2Channel:1",
-"UpdateAll"      => "UpdateAll:1"
-#"NrFavorit"     => "NrFavorit:"
-);
+#### Leon hat die Set Liste gelöscht.
 
 my %TVSender_gets = (
 "na"    => "1"
@@ -19,7 +14,7 @@ my %TVSender_gets = (
 );
 
 use vars qw{$TVSender_version};
-$TVSender_version="0.1.0";
+$TVSender_version="0.1.0patch1Leon";      # Leon Patch 1
 
 sub TVSender_Initialize($) {
     my ($hash) = @_;
@@ -729,24 +724,19 @@ sub TVSender_Get($@) {
 }
 
 sub TVSender_Set($@) {
-    my ($hash, @param) = @_;
 
-    return '"set TVProgram" needs at least one argument' if (int(@param) < 2);
-
-    my $name = shift @param;
-    my $opt = shift @param;
-    my $value = join("", @param);
+    my ($hash, $name, $cmd, @args) = @_;
+    my ($arg, @params) = @args;
+    
+    
     my $httpmoddevice = '';
-    my $cmd = '';
     my $errors = '';
     my $regex = "";
     my $subst = "";
-    if(!defined($TVSender_sets{$opt})) {
-        my @cList = keys %TVSender_sets;
-        return "Unknown argument $opt, choose one of " . join(" ", @cList);
-    }
-    if ($opt eq 'AutoCreate') {
-        if ($value eq '1') {
+
+    
+    if ($cmd eq 'AutoCreate') {
+        if ($arg eq '1') {
           $httpmoddevice = InternalVal($name,'TV_Program_NOW','TV_Program_NOW');
           my $TV_Program_hash = $defs{$httpmoddevice};
           TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Es läuft",1);
@@ -772,8 +762,9 @@ sub TVSender_Set($@) {
           TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
         }
     }
-    if ($opt eq 'Switch2Channel') {
-      if ($value eq "1") {
+    
+    elsif ($cmd eq 'Switch2Channel') {
+      if ($arg eq "1") {
         #fhem ('"'.AttrVal($name,"SwitchCommand","").'"');
         $cmd = AttrVal($name,"SwitchCommand","");
         $regex = qr/;/p;
@@ -790,12 +781,19 @@ sub TVSender_Set($@) {
         }
       }
     }
-    if ($opt eq 'UpdateAll') {
-      if ($value eq "1") {
+    
+    elsif ($cmd eq 'UpdateAll') {
+      if ($arg eq "1") {
         #fhem ('"'.AttrVal($name,"SwitchCommand","").'"');
         TVSender_Parameter_update ($hash);
       }
+      
+    } else {
+        my $list = "AutoCreate:0,1 Switch2Channel:1 UpdateAll:1";
+        return "Unknown argument $cmd, choose one of $list";
     }
+
+    return undef;
 }
 
 sub TVSender_Attr(@) {
