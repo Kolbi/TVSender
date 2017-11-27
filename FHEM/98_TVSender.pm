@@ -3,24 +3,14 @@ use strict;
 use warnings;
 
 
-# my %TVSender_sets = (
-# "AutoCreate"     => "AutoCreate:0,1",
-# "Switch2Channel" => "Switch2Channel:1",
-# "UpdateAll"      => "UpdateAll:1"
-# #"NrFavorit"     => "NrFavorit:"
-# );
-
 my %TVSender_gets = (
-#"na"    => "1"
-#"Aktuell"    => "NOW",
-#"Danach"    => "NEXT",
-#"PrimeTime"    => "PT",
-#"Später"  => "PTNEXT"
 );
 
+# Bitte pflegen, wird als Internal abgelegt
 use vars qw{$TVSender_version};
-$TVSender_version="0.1.1";
+$TVSender_version="0.2.0";
 
+# FHEM Standard: x_Intitialisierung
 sub TVSender_Initialize($) {
     my ($hash) = @_;
     $hash->{DefFn}      = 'TVSender_Define';
@@ -70,7 +60,7 @@ sub TVSender_Initialize($) {
     # " Regex_PTNEXTDetailLink".          # Vollständige Regex für den Link zu den Sendungsdetails PrimeTime Danach
     " ".$readingFnAttributes;
 }
-
+# FHEM Standard: x_Define
 sub TVSender_Define($$) {
   my ($hash, $def) = @_;
   my @param = split('[ \t]+', $def);
@@ -168,17 +158,79 @@ sub TVSender_Define($$) {
   return undef;
 }
 
+### Hier beginnen die noch nicht umgesetzten Vorschläge für Prozeduren (wenn diese hier stehen: z.Zt. noch ohne Funktion)
+# Sortierfunktion für die Tabelle in den HTTPMOD Devices
 sub TVSender_Sort_HTTPMOD_Device_stateformat($$) {
+  my ($hash,$httpmoddevice) = @_;
+  my $name = $hash->{"NAME"};
+  my $fav = substr("0000".AttrVal($name,"NrFavorit","9999"), -4, 4);
+  my $cmd = '';
+  my $errors = '';
+  my $stateformat = AttrVal($httpmoddevice,'stateFormat','');
+  #my $regex = qr/<tr id = "$fav" title = "$name".*$name\_Title<\/td><\/tr>/p;
+  my $regex = qr/<tr id = "\d\d\d\d" title = "[\w\W]*?"> <td width=100px ><a href="\/fhem\?detail=[\w\W]*?"><img src=[\w\W]*?_Logo width=96px ><\/a><\/td><td style="vertical-align: middle;text-align: left;width: 50px;text-align: center;font-size: larger"><a href="\/fhem\?cmd=set%20[\w\W]*?%20Switch2Channel%201">[\w\W]*?_Channel<\/a><\/td><td style="vertical-align: middle;text-align: left;width: 50px;font-size: larger">[\w\W]*?_Time<\/td><td style="vertical-align: middle;text-align: left;font-size: larger">[\w\W]*?_Title<\/td><\/tr>/p;
+  my $subst = '';
+  my @senderrows = $stateformat =~ /$regex/g;
+  Log3($name, 3, "Anzahl: @senderrows");
+  @senderrows = sort @senderrows;
+  my $sortedstateformat = join('',@senderrows);
+  $sortedstateformat = '<table width=100% >'.$sortedstateformat.'</table>';
+  $regex = qr/;/p;
+  $subst = ';;';
+  $sortedstateformat = $sortedstateformat =~ s/$regex/$subst/rg;
+  $cmd = 'attr '.$httpmoddevice.' stateFormat '.$sortedstateformat.';';
+  $errors = '';
+  $errors = AnalyzeCommandChain (undef, $cmd);
+  if (!defined($errors)) {
+    #Log3($name, 3, 'Sucsessfully new defined/changed stateFormat to '.$httpmoddevice.'!');
+    }
+  else {
+    Log3($name, 5, 'Sorting stateFormat from '.$httpmoddevice.' cause error: '.$errors.'!');
+    Log3($name, 5, $cmd);
+  }
+}
+# Pflege der userattr in den HTTPMOD Devices
+sub TVSender_Update_HTTPMOD_Device_userattr($$) {
   my ($hash,$httpmoddevice) = @_;
   my $name = $hash->{"NAME"};
   my $cmd = '';
   my $errors = '';
-  my $stateformat = AttrVal($httpmoddevice,'stateFormat','');
-  my $regex = qr/<tr id = "$name.*$name\_Title<\/td><\/tr>/p;
-  my $stateformat_exists = $stateformat =~ /$regex/g;
-  my %sorter = '';
 
 }
+# Pfege der _Name _Regex Wertepaare für die userReadings der HTTMOD Devices
+sub TVSender_Update_HTTPMOD_Device_Regexes($$) {
+  my ($hash,$httpmoddevice) = @_;
+  my $name = $hash->{"NAME"};
+  my $cmd = '';
+  my $errors = '';
+
+}
+# Pflege des stateFormat Attributes des TVSender Devices
+sub TVSender_Update_stateFormat($$) {
+  my ($hash,$httpmoddevice) = @_;
+  my $name = $hash->{"NAME"};
+  my $cmd = '';
+  my $errors = '';
+
+}
+# Mauelle Ausführung eines StatusRequestes für die HTTMOD Devices
+sub TVSender_StatusRequest($$) {
+  my ($hash,$httpmoddevice) = @_;
+  my $name = $hash->{"NAME"};
+  my $cmd = '';
+  my $errors = '';
+
+}
+# (NonBlocking) download des Senderlogos nach /opt/fhem/www/imgages/default/tvlogos
+sub TVSender_WGET_SenderLogo($$) {
+  my ($hash,$httpmoddevice) = @_;
+  my $name = $hash->{"NAME"};
+  my $cmd = '';
+  my $errors = '';
+
+}
+# Offene Erweiterungen ...
+###
 
 # Alle Definitionen erneut ausführen
 sub TVSender_Parameter_update ($) {
@@ -201,6 +253,11 @@ sub TVSender_Parameter_update ($) {
   TVSender_Change_HTTPMOD_Device_stateformat($hash,$nameNEXT);
   TVSender_Change_HTTPMOD_Device_stateformat($hash,$namePT);
   TVSender_Change_HTTPMOD_Device_stateformat($hash,$namePTNEXT);
+  TVSender_Sort_HTTPMOD_Device_stateformat($hash,$nameNOW);
+  TVSender_Sort_HTTPMOD_Device_stateformat($hash,$nameNEXT);
+  TVSender_Sort_HTTPMOD_Device_stateformat($hash,$namePT);
+  TVSender_Sort_HTTPMOD_Device_stateformat($hash,$namePTNEXT);
+
   TVSender_stateFormat($hash);
 }
 # Überwachung der 4 HTTPMOD Devices zur Pflege der Readings in TVSender Device
@@ -525,17 +582,18 @@ sub TVSender_Change_HTTPMOD_Device_userattr($$) {
 sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
   my ($hash,$httpmoddevice) = @_;
   my $name = $hash->{"NAME"};
+  my $fav = substr("0000".AttrVal($name,"NrFavorit","9999"), -4, 4);
   my $cmd = '';
   my $errors = '';
   my $stateformat = AttrVal($httpmoddevice,'stateFormat','');
-  my $regex = qr/<tr id = "$name.*$name\_Title<\/td><\/tr>/p;
+  my $regex = qr/<tr id = "$fav" title = "$name".*$name\_Title<\/td><\/tr>/p;
   my $subst = '';
   my $stateformat_exists = $stateformat =~ /$regex/g;
 
   if ($stateformat eq '') {
     ### Das stateFormat Attribut des HTTPMOD Devive ist noch nicht gesetzt => stateFormat erstmalig setzen
     $stateformat = '<table width=100% >'
-    .'<tr id = "'.$name.'"> '
+    .'<tr id = "'.$fav.'" title = "'.$name.'"> '
       .'<td width=100px ><a href="/fhem?detail='.$name.'"><img src='.$name.'_Logo width=96px ></a></td>'
       .'<td style="vertical-align: middle;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20.'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
       .'<td style="vertical-align: middle;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
@@ -552,7 +610,7 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     $regex = qr/;/p;
     $subst = ';;';
     $stateformat = $stateformat =~ s/$regex/$subst/rg;
-    $stateformat = $stateformat.'<tr id = "'.$name.'"> '
+    $stateformat = $stateformat.'<tr id = "'.$fav.'" title = "'.$name.'"> '
       .'<td width=100px ><a href="/fhem?detail='.$name.'"><img src='.$name.'_Logo width=96px ></a></td>'
       .'<td style="vertical-align: middle;;text-align: left;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
       .'<td style="vertical-align: middle;;text-align: left;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
@@ -567,7 +625,7 @@ sub TVSender_Change_HTTPMOD_Device_stateformat($$) {
     $regex = qr/;/p;
     $subst = ';;';
     $stateformat = $stateformat =~ s/$regex/$subst/rg;
-    $stateformat = $stateformat.'<tr id = "'.$name.'"> '
+    $stateformat = $stateformat.'<tr id = "'.$fav.'" title = "'.$name.'"> '
       .'<td width=100px ><a href="/fhem?detail='.$name.'"><img src='.$name.'_Logo width=96px ></a></td>'
       .'<td style="vertical-align: middle;;text-align: left;;width: 50px;;text-align: center;;font-size: larger"><a href="/fhem?cmd=set%20'.$name.'%20Switch2Channel%201">'.$name.'_Channel</a></td>'
       .'<td style="vertical-align: middle;;text-align: left;;width: 50px;;font-size: larger">'.$name.'_Time</td>'
@@ -618,7 +676,7 @@ sub TVSender_Delete_HTTPMOD_Device_userattr($$) {
     $subst = '';
     $userattribut = $userattribut =~ s/$regex/$subst/rg;
     $errors = '';
-    $errors = AnalyzeCommandChain (undef, 'attr '.$httpmoddevice.' userattr '.$userattribut.' '.$userattributdelete.';');
+    $errors = AnalyzeCommandChain (undef, 'attr '.$httpmoddevice.' userattr '.$userattribut.';');
     if (!defined($errors)) {
         #Log3($name, 3, 'Sucsessfully update userattr to '.$httpmoddevice.'!');
     }
@@ -657,12 +715,13 @@ sub TVSender_Delete_HTTPMOD_Device_userattr($$) {
 sub TVSender_Delete_HTTPMOD_Device_stateformat($$) {
   my ($hash,$httpmoddevice) = @_;
   my $name = $hash->{"NAME"};
+  my $fav = substr("0000".AttrVal($name,"NrFavorit","9999"), -4, 4);
   my $cmd = '';
   my $errors = '';
   my $regex = '';
   my $subst = '';
   my $stateformat = AttrVal($httpmoddevice,'stateFormat','');
-  $regex = qr/<tr id = "$name.*$name\_Title<\/td><\/tr>/p;
+  $regex = qr/<tr id = "$fav" title = "$name.*$name\_Title<\/td><\/tr>/p;
   $subst = '';
   $stateformat = $stateformat =~ s/$regex/$subst/rg;
   $regex = qr/;/p;
@@ -724,7 +783,7 @@ sub TVSender_Rename($$) {
   my ( $new_name, $old_name) = @_;
   return "Diese Funtion ist z.Zt. nicht möglich, bitte Device: $old_name löschen und als $new_name neu anlegen!"
 }
-#
+# Z.Zt. ohne Funktionen
 sub TVSender_Get($@) {
     my ($hash, @param) = @_;
     return 'get TVSender needs at least one argument' if (int(@param) < 2);
@@ -741,7 +800,7 @@ sub TVSender_Get($@) {
     }
     return $TVSender_gets{$opt};
 }
-
+# Set Befehle für das TVSender Device
 sub TVSender_Set($@) {
     my ($hash, $name, $cmd, @args) = @_;
     my ($arg, @params) = @args;
@@ -758,22 +817,26 @@ sub TVSender_Set($@) {
       TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Es läuft",1);
       TVSender_Change_HTTPMOD_Device_userattr($hash,$httpmoddevice);
       TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
+      TVSender_Sort_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
       ### TV_Program_NEXT ###
       $httpmoddevice = InternalVal($name,'TV_Program_NEXT','TV_Program_NEXT');
       TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Anschliessend",2);
       TVSender_Change_HTTPMOD_Device_userattr($hash,$httpmoddevice);
       TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
+      TVSender_Sort_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
       ### TV_Program_PT ###
       $httpmoddevice = InternalVal($name,'TV_Program_PT','TV_Program_PT');
       #$TV_Program_hash = $defs{$httpmoddevice};
       TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Zur PrimeTime",3);
       TVSender_Change_HTTPMOD_Device_userattr($hash,$httpmoddevice);
       TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
+      TVSender_Sort_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
       ### TV_Program_PTNEXT ###
       $httpmoddevice = InternalVal($name,'TV_Program_PTNEXT','TV_Program_PTNEXT');
       TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Danach",4);
       TVSender_Change_HTTPMOD_Device_userattr($hash,$httpmoddevice);
       TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
+      TVSender_Sort_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
     }
     elsif ($cmd eq 'Switch2Channel') {
         $fhemcmd = AttrVal($name,"SwitchCommand","");
@@ -817,7 +880,7 @@ sub TVSender_Set($@) {
         return "Unknown argument $cmd, choose one of $list";
     }
 }
-
+# Enlesen der gültigen Sendersuchbegriffe, Rückgabe = Array
 sub TVSender_Get_ChannelList($) {
   my ($hash) = @_;
   my $name = $hash->{"NAME"};
@@ -832,78 +895,7 @@ sub TVSender_Get_ChannelList($) {
   #Log3($name, 3, @ChannelListArray);
   return @ChannelListArray;
 }
-
-
-# sub TVSender_Set($@) {
-#     my ($hash, @param) = @_;
-#
-#     return '"set TVProgram" needs at least one argument' if (int(@param) < 2);
-#
-#     my $name = shift @param;
-#     my $opt = shift @param;‚
-#     my $value = join("", @param);
-#     my $httpmoddevice = '';
-#     my $cmd = '';
-#     my $errors = '';
-#     my $regex = "";
-#     my $subst = "";
-#     if(!defined($TVSender_sets{$opt})) {
-#         my @cList = keys %TVSender_sets;
-#         return "Unknown argument $opt, choose one of " . join(" ", @cList);
-#     }
-#     if ($opt eq 'AutoCreate') {
-#         if ($value eq '1') {
-#           $httpmoddevice = InternalVal($name,'TV_Program_NOW','TV_Program_NOW');
-#           my $TV_Program_hash = $defs{$httpmoddevice};
-#           TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Es läuft",1);
-#           TVSender_Change_HTTPMOD_Device_userattr($hash,$httpmoddevice);
-#           TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
-#           ### TV_Program_NEXT ###
-#           $httpmoddevice = InternalVal($name,'TV_Program_NEXT','TV_Program_NEXT');
-#           $TV_Program_hash = $defs{$httpmoddevice};
-#           TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Anschliessend",2);
-#           TVSender_Change_HTTPMOD_Device_userattr($hash,$httpmoddevice);
-#           TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
-#           ### TV_Program_PT ###
-#           $httpmoddevice = InternalVal($name,'TV_Program_PT','TV_Program_PT');
-#           $TV_Program_hash = $defs{$httpmoddevice};
-#           TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Zur PrimeTime",3);
-#           TVSender_Change_HTTPMOD_Device_userattr($hash,$httpmoddevice);
-#           TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
-#           ### TV_Program_PTNEXT ###
-#           $httpmoddevice = InternalVal($name,'TV_Program_PTNEXT','TV_Program_PTNEXT');
-#           $TV_Program_hash = $defs{$httpmoddevice};
-#           TVSender_Add_HTTPMOD_Device($hash,$httpmoddevice,"Danach",4);
-#           TVSender_Change_HTTPMOD_Device_userattr($hash,$httpmoddevice);
-#           TVSender_Change_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
-#         }
-#     }
-#     if ($opt eq 'Switch2Channel') {
-#       if ($value eq "1") {
-#         #fhem ('"'.AttrVal($name,"SwitchCommand","").'"');
-#         $cmd = AttrVal($name,"SwitchCommand","");
-#         $regex = qr/;/p;
-#         $subst = ';;';
-#         $cmd = $cmd =~ s/$regex/$subst/rg;
-#         $errors = '';
-#         $errors = AnalyzeCommandChain (undef, $cmd);
-#         if (!defined($errors)) {
-#           #Log3($name, 3,'Sucsessfully deleted row of stateFormat to '.$httpmoddevice.'!');
-#         }
-#         else {
-#           Log3($name, 5, 'SwitchCommand from '.$name.'cause error: '.$errors.'!');
-#           Log3($name, 5, $cmd);
-#         }
-#       }
-#     }
-#     if ($opt eq 'UpdateAll') {
-#       if ($value eq "1") {
-#         #fhem ('"'.AttrVal($name,"SwitchCommand","").'"');
-#         TVSender_Parameter_update ($hash);
-#       }
-#     }
-# }
-
+# Übernahme der Attribut - Änderungen (z.Zt. kein automatisches update, please use set <devicename> UpdateAll)
 sub TVSender_Attr(@) {
     my ($cmd,$name,$attr_name,$attr_value) = @_;
     my $hash = $defs{$name};
@@ -938,9 +930,9 @@ sub TVSender_Attr(@) {
  <br><br>
  Example: <code>define Das_Erste TVSender 161 Das%20Erste 1</code>
  <br><br><ul>
- "Channel" parameter must be the Program-Channel from the TV-Receiver,
+ "Channel" parameter must be the program-channel from the TV-Receiver,
  "ChannelName" parameter must be the search term from klack.de without whitespaces (%20), if it is defferent to the name of the device,
- "NrFavorit" prameter can be the given to sort the channels in the readingsGroup
+ "NrFavorit" parameter can be given to sort the channels in the in the new TV-Sender group
  </ul>
  <br>
 
@@ -949,14 +941,27 @@ sub TVSender_Attr(@) {
  <ul>
  <code>set &lt;name&gt; &lt;option&gt; &lt;value&gt;</code>
  <br><br>
- Not yet implemented.
+ <ul>
+ <li><i>AutoCreate</i><br>
+ Creates or modifies the HTTPMOD Devices and teh attributs of the TVSender Device
+ </li>
+ <li><i>ChannelName</i> <br>
+ Modifies the Name of the channel for searching in kl**k.de in the HTTPMOD Devices
+ </li>
+ <li><i>Switch2Channel</i> <br>
+ Run the fhem commands of the attribute SwitchCommand
+ </li>
+ <li><i>UpdateAll</i> <br>
+ Update all devices and attributs and readings of the HTTPMOD Devices
+ </li>
+ </ul>.
  <br><br>
  Options:
  Not yet implemented.
  </ul>
  <br>
 
- <a name="TVSenderget"></a>
+ <a name="TVSenderet"></a>
  <b>Get</b><br>
  <ul>
  <code>get &lt;name&gt; &lt;option&gt;</code>
@@ -988,10 +993,10 @@ sub TVSender_Attr(@) {
  Channel logo local saved at /opt/fhem/www/images/...
  </li>
  <li><i>HarmonyDevice</i> <br>
- Device name of your HarmonyDevice/TV-Receiver to switch channel
+ Device name of your HarmonyDevice/TV-Receiver to switch channel (without any use for now)
  </li>
  <li><i>SwitchCommand</i> <br>
- Perl Code to switch Channel of your HarmonyDevice/TV-Receiver { fhem("set ReceiverDevice switchcommand") }
+ Perl Code to switch Channel of your HarmonyDevice/TV-Receiver "set < ReceiverDevice > < switchcommand > [;; set < ReceiverDevice > < switchcommand > ...]") }
  </li>
  <li><i>NrFavorit</i> 1 - 9999<br>
  Sorting number stored in sortby attribute of the TV_Program_xx HTTPMOD modueles
