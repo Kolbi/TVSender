@@ -8,7 +8,7 @@ my %TVSender_gets = (
 
 # Bitte pflegen, wird als Internal abgelegt
 use vars qw{$TVSender_version};
-$TVSender_version="0.2.0";
+$TVSender_version="0.2.1";
 
 # FHEM Standard: x_Intitialisierung
 sub TVSender_Initialize($) {
