@@ -159,36 +159,6 @@ sub TVSender_Define($$) {
 }
 
 ### Hier beginnen die noch nicht umgesetzten Vorschläge für Prozeduren (wenn diese hier stehen: z.Zt. noch ohne Funktion)
-# Sortierfunktion für die Tabelle in den HTTPMOD Devices
-sub TVSender_Sort_HTTPMOD_Device_stateformat($$) {
-  my ($hash,$httpmoddevice) = @_;
-  my $name = $hash->{"NAME"};
-  my $fav = substr("0000".AttrVal($name,"NrFavorit","9999"), -4, 4);
-  my $cmd = '';
-  my $errors = '';
-  my $stateformat = AttrVal($httpmoddevice,'stateFormat','');
-  #my $regex = qr/<tr id = "$fav" title = "$name".*$name\_Title<\/td><\/tr>/p;
-  my $regex = qr/<tr id = "\d\d\d\d" title = "[\w\W]*?"> <td width=100px ><a href="\/fhem\?detail=[\w\W]*?"><img src=[\w\W]*?_Logo width=96px ><\/a><\/td><td style="vertical-align: middle;text-align: left;width: 50px;text-align: center;font-size: larger"><a href="\/fhem\?cmd=set%20[\w\W]*?%20Switch2Channel%201">[\w\W]*?_Channel<\/a><\/td><td style="vertical-align: middle;text-align: left;width: 50px;font-size: larger">[\w\W]*?_Time<\/td><td style="vertical-align: middle;text-align: left;font-size: larger">[\w\W]*?_Title<\/td><\/tr>/p;
-  my $subst = '';
-  my @senderrows = $stateformat =~ /$regex/g;
-  Log3($name, 3, "Anzahl: @senderrows");
-  @senderrows = sort @senderrows;
-  my $sortedstateformat = join('',@senderrows);
-  $sortedstateformat = '<table width=100% >'.$sortedstateformat.'</table>';
-  $regex = qr/;/p;
-  $subst = ';;';
-  $sortedstateformat = $sortedstateformat =~ s/$regex/$subst/rg;
-  $cmd = 'attr '.$httpmoddevice.' stateFormat '.$sortedstateformat.';';
-  $errors = '';
-  $errors = AnalyzeCommandChain (undef, $cmd);
-  if (!defined($errors)) {
-    #Log3($name, 3, 'Sucsessfully new defined/changed stateFormat to '.$httpmoddevice.'!');
-    }
-  else {
-    Log3($name, 5, 'Sorting stateFormat from '.$httpmoddevice.' cause error: '.$errors.'!');
-    Log3($name, 5, $cmd);
-  }
-}
 # Pflege der userattr in den HTTPMOD Devices
 sub TVSender_Update_HTTPMOD_Device_userattr($$) {
   my ($hash,$httpmoddevice) = @_;
@@ -232,6 +202,36 @@ sub TVSender_WGET_SenderLogo($$) {
 # Offene Erweiterungen ...
 ###
 
+# Sortierfunktion für die Tabelle in den HTTPMOD Devices
+sub TVSender_Sort_HTTPMOD_Device_stateformat($$) {
+  my ($hash,$httpmoddevice) = @_;
+  my $name = $hash->{"NAME"};
+  my $fav = substr("0000".AttrVal($name,"NrFavorit","9999"), -4, 4);
+  my $cmd = '';
+  my $errors = '';
+  my $stateformat = AttrVal($httpmoddevice,'stateFormat','');
+  #my $regex = qr/<tr id = "$fav" title = "$name".*$name\_Title<\/td><\/tr>/p;
+  my $regex = qr/<tr id = "\d\d\d\d" title = "[\w\W]*?"> <td width=100px ><a href="\/fhem\?detail=[\w\W]*?"><img src=[\w\W]*?_Logo width=96px ><\/a><\/td><td style="vertical-align: middle;text-align: left;width: 50px;text-align: center;font-size: larger"><a href="\/fhem\?cmd=set%20[\w\W]*?%20Switch2Channel%201">[\w\W]*?_Channel<\/a><\/td><td style="vertical-align: middle;text-align: left;width: 50px;font-size: larger">[\w\W]*?_Time<\/td><td style="vertical-align: middle;text-align: left;font-size: larger">[\w\W]*?_Title<\/td><\/tr>/p;
+  my $subst = '';
+  my @senderrows = $stateformat =~ /$regex/g;
+  Log3($name, 3, "Anzahl: @senderrows");
+  @senderrows = sort @senderrows;
+  my $sortedstateformat = join('',@senderrows);
+  $sortedstateformat = '<table width=100% >'.$sortedstateformat.'</table>';
+  $regex = qr/;/p;
+  $subst = ';;';
+  $sortedstateformat = $sortedstateformat =~ s/$regex/$subst/rg;
+  $cmd = 'attr '.$httpmoddevice.' stateFormat '.$sortedstateformat.';';
+  $errors = '';
+  $errors = AnalyzeCommandChain (undef, $cmd);
+  if (!defined($errors)) {
+    #Log3($name, 3, 'Sucsessfully new defined/changed stateFormat to '.$httpmoddevice.'!');
+    }
+  else {
+    Log3($name, 5, 'Sorting stateFormat from '.$httpmoddevice.' cause error: '.$errors.'!');
+    Log3($name, 5, $cmd);
+  }
+}
 # Alle Definitionen erneut ausführen
 sub TVSender_Parameter_update ($) {
   my ($hash) = @_;
@@ -461,7 +461,6 @@ sub TVSender_Add_HTTPMOD_Device($$$$) {
     }
 
   }
-
 }
 # userattr der HTTMOD Devices des Senders anlegen oder ändern
 sub TVSender_Change_HTTPMOD_Device_userattr($$) {
@@ -488,9 +487,7 @@ sub TVSender_Change_HTTPMOD_Device_userattr($$) {
     .$readingsnamepart.'04Name '        # 04: DetailLink Wertepaar für NEXT_DetailLink Name definieren
     .$readingsnamepart.'04Regex '       # 04: DetailLink Wertepaar für NEXT_DetailLink Regex definieren
     .$readingsnamepart.'05Name '        # 05: Image Wertepaar für NEXT_Image Name definieren
-    .$readingsnamepart.'05Regex '       # 05: Image Wertepaar für NEXT_Image Regex definieren
-    .'reading01Name '                   # Finde gültige SenderSuchBegriffe
-    .'reading01Regex';                  # Finde gültige SenderSuchBegriffe
+    .$readingsnamepart.'05Regex ';       # 05: Image Wertepaar für NEXT_Image Regex definieren
 
   if (index($httpmoddevice,'_NOW') != -1) {
     $code = 0;
@@ -550,8 +547,6 @@ sub TVSender_Change_HTTPMOD_Device_userattr($$) {
   }
   # Definition der Name/Regesx Wertepaare der userAttribute wir erstellt bzw. aktualisiert
   $cmd = ''
-    .'attr '.$httpmoddevice.' reading01Name ChannelList;'
-    .'attr '.$httpmoddevice.' reading01Regex '.InternalVal($name,'FindChannelList_Regex','').';'
     .'attr '.$httpmoddevice.' '.$readingsnamepart.'00Name '.$name.'_Logo'.';'
     .'attr '.$httpmoddevice.' '.$readingsnamepart.'00Regex '.InternalVal($name,'Logo_Regex','').';'
     .'attr '.$httpmoddevice.' '.$readingsnamepart.'01Name '.$name.'_Title;'
@@ -922,6 +917,7 @@ sub TVSender_Attr(@) {
  <ul>
  <i>TVSender</i> implements a TV - Channel and creates HTTPMOD Devices
  TV_Program_NOW, TV_Program_NEXT, TV_Program_PT and TV_Program_PTNEXT.
+ (Details look at https://github.com/supernova1963/TVSender/wiki)
  <br><br>
  <a name="TVSenderdefine"></a>
  <b>Define</b>
