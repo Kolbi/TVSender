@@ -3,12 +3,17 @@ use strict;
 use warnings;
 
 
+
+
 # my %TVSender_gets = (
 # );
 
+
 # Bitte pflegen, wird als Internal abgelegt
 use vars qw{$TVSender_version};
-$TVSender_version="0.2.3";
+
+$TVSender_version="0.3.3";
+
 
 # FHEM Standard: x_Intitialisierung
 sub TVSender_Initialize($) {
@@ -32,177 +37,223 @@ sub TVSender_Initialize($) {
     #" SwitchCommandTimer".              # Vollständiger Befehl zum Umschalten setzen
     #" RecordCommandTimer".              # Vollständiger Befehl zum Umschalten setzen
     " NrFavorit".                       # Favoriten Nr = sortby
+    " tvCurrentlyUrl".
+    " tv2015Url".
+    " tvCurrentlyRegEx".
+    " tv2015RegEx".
+    " interval".
     " ".$readingFnAttributes;
 }
 # FHEM Standard: x_Define
 sub TVSender_Define($$) {
-  my ($hash, $def) = @_;
-  my @param = split('[ \t]+', $def);
-  my ($name, $type, $Channel, $ChannelName, $NrFavorit) = @param;
-  my $Senderwechselbefehl = "";
-  my $i = 0;
-  my $httpmoddevice = "";
-  my $httpmoddevice_url = "";
-  my $errors = "";
-  my $cmds = "";
-  my $regex = "";
-  my $subst = '';
-  ### Parameter mindesten 4
-  if(int(@param) < 3) {
-    return "Zu weninge Parameter: define <name> TVSender <Channel> [<ChannelName>] [<NrFavorit>]";
-  }
-  ### TVSender_version aktualisieren ###
-  $hash->{Version} = $TVSender_version;
 
-  ### Attribut prüfen, setzen und pflegen ###
-  ##### Attribut Chanel = Receiver Kanal darf nach erstem AutoCreate nicht verändert werden!
-  ##### Ist Basis für userattr und readings der HTTPMOD Devices
-  ##### Ist Pflicht - Parameter [2] bei der Erstellung
-  $attr{$name}{"Channel"} = $Channel if (!defined($attr{$name}{"Channel"}));
-  ##### Attribut: ChanelName = Sendersuchbegriffe in kl**k.de. Kann über TVSender Attribut gepflegt werden.
-  ##### Optionaler Parameter [3] bei Erstellung. Wird nicht überschrieben, wenn vorhanden!
-  if (!defined($ChannelName)) {
-    $ChannelName = $name;
-  }
-  $regex = qr/%20/p;
-  $subst = ' ';
-  $ChannelName = $ChannelName =~ s/$regex/$subst/rg;
-  $attr{$name}{"ChannelName"} = $ChannelName if (!defined($attr{$name}{"ChannelName"}));
-  ##### Attribut: Description = derzeit nicht weiter genutzt, wird nicht überschrieben, wennVorhanden
-  $attr{$name}{"Description"} = $name." = ".$ChannelName if (!defined($attr{$name}{"Description"}));
-  ##### Attribut: Logo = Standardpfad zur Senderlogo Datei
-  ##### Änderungen über das Attribut werden nicht überschrieben, wenn vorhanden
-  $attr{$name}{"Logo"} = "/opt/fhem/www/images/default/tvlogos/".$name.".png" if (!defined($attr{$name}{"Logo"}));
-  ##### Internal Variable: ermittelt in HTTPMOD Devices die URL für das Senderlogo
-  $hash->{Logo_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?src="\s*[\w\W]*?\s*(.*?)\s*" alt=';
-  ##### Attribut: HarmonyDevice = Besser in FHEM definiertes TV Receiver Devive, wird nicht überschrieben, wenn vorhanden
-  ##### Soll für die automatisierte SwitchCommand Generierung verwendet werden, wird nicht überschrieben, wenn vorhanden
-  $attr{$name}{"HarmonyDevice"} = "harmony_34915526" if (!defined($attr{$name}{"HarmonyDevice"}));
-  ##### Attribut: SwitchCommand = FHEM Befehle für das umschalten auf einen Receiver-Kanal
-  ##### Wird derzeit als Muster vorbelegt, muss individualisiert werden !!! Wird nicht überschrieben, wenn vorhanden
-  $Senderwechselbefehl = "";
-  foreach $i (0..length($Channel)-1) {
-    $Senderwechselbefehl = $Senderwechselbefehl.'set '.AttrVal($name,"HarmonyDevice","").' command Number'.substr($Channel, $i,0).';;';
-  }
-  $Senderwechselbefehl = $Senderwechselbefehl.'set '.AttrVal($name,"HarmonyDevice","").' command Select;;';
-  $attr{$name}{"SwitchCommand"} = $Senderwechselbefehl if (!defined($attr{$name}{"SwitchCommand"}));
-  ##### Attribut: NrFavorit wird für die Sortierung der Sender in rooms, groups und stateFormat Tabellen der HTTPMOD Devices
-  ##### Optionaler Parameter [4], wird nicht überschrieben, wenn vorhanden
-  ##### FHEM Standard Attribut: sortby wird parallel (mit führenden Nullen) zu NrFavorit gepflegt
-  $NrFavorit = $Channel if (!defined($NrFavorit));
-  if (defined($NrFavorit) or ($NrFavorit > 0)) {
-    $attr{$name}{"NrFavorit"} = $NrFavorit;
-    $attr{$name}{"sortby"} = substr("0000".$NrFavorit, -4, 4);
-  }
-  else {
-    $attr{$name}{"sortby"} = substr("0000".$Channel, -4, 4) if (!defined($attr{$name}{"sortby"}) or $attr{$name}{"sortby"} != substr("0000".$Channel, -4, 4));
-  }
-  ### Vorgaben für Regex setzen
-  TVSender_Change_Regex_Defaults($hash);
-  ### stateFormat setzen  ###
-  TVSender_stateFormat($hash);
-  ### Überwachung ob FHEM Initialisierung abgeschlossen ist und auf Veränderungen in den HTTPMOD Devices
-  my $notifiedDevices = 'global';
-  $notifiedDevices = $notifiedDevices.','
-      .InternalVal($name,"TV_Program_NOW","TV_Program_NOW").','
-      .InternalVal($name,"TV_Program_NEXT","TV_Program_NEXT").','
-      .InternalVal($name,"TV_Program_PT","TV_Program_PT").','
-      .InternalVal($name,"TV_Program_PTNEXT","TV_Program_PTNEXT");
-  $hash->{NOTIFYDEV} = $notifiedDevices;
-  return undef;
+    my ( $hash, $def ) = @_;
+    
+    my @a = split( "[ \t][ \t]*", $def );
+
+    
+    return "too few parameters: define <name> TVSender <Channel> [<ChannelName>] [<NrFavorit>]" if( $a[0] ne "TVSenderBridge" and @a < 3 and @a > 5 );
+    
+    my $name            = $a[0];
+    my $Channel         = $a[2] if( defined($a[2]) );
+    my $ChannelName     = $a[3] if( defined($a[3]) );
+    my $NrFavorit       = $a[4] if( defined($a[4]) );
+    $hash->{CHANNEL}    = $Channel if( defined($Channel) );
+  
+    if( not $hash->{CHANNEL} ) {
+        return "there is already a TVSender Bridge, did you want to define a TVSender Client use: define <name> TVSender <Channel> [<ChannelName>] [<NrFavorit>]" if( $modules{TVSender}{defptr}{BRIDGE} );
+
+        $hash->{BRIDGE}                     = 1;
+        $modules{TVSender}{defptr}{BRIDGE}  = $hash;
+        $hash->{INTERVAL}                   = 1800;
+        $hash->{NOTIFYDEV}                  = "global";
+        $hash->{actionQueue}                = [];
+        
+        CommandAttr(undef,$name.' room TV-Programm') if( AttrVal($name,'room','none') eq 'none');
+        CommandAttr(undef,$name.' tvCurrentlyUrl was-laeuft-gerade/0/0/all.html') if( AttrVal($name,'tvCurrentlyUrl','none') eq 'none');
+        CommandAttr(undef,$name.' tv2015Url 2015-im-tv/0/0/all.html') if( AttrVal($name,'tv2015Url','none') eq 'none');
+        
+        readingsSingleUpdate ( $hash, "state", "initialized", 1 );
+    
+        Log3 $name, 3, "TVSender ($name) - defined Bridge";
+
+    } else {
+        if( not $modules{TVSender}{defptr}{BRIDGE} and $init_done ) {
+            CommandDefine( undef, "TVSenderBridge TVSender" );    
+        }
+        
+        my $Senderwechselbefehl = "";
+        my $i = 0;
+        my $httpmoddevice = "";
+        my $httpmoddevice_url = "";
+        my $errors = "";
+        my $cmds = "";
+        my $regex = "";
+        my $subst = '';
+        ### Parameter mindesten 4
+        
+        ### TVSender_version aktualisieren ###
+        $hash->{Version} = $TVSender_version;
+
+        ### Attribut prüfen, setzen und pflegen ###
+        ##### Attribut Chanel = Receiver Kanal darf nach erstem AutoCreate nicht verändert werden!
+        ##### Ist Basis für userattr und readings der HTTPMOD Devices
+        ##### Ist Pflicht - Parameter [2] bei der Erstellung
+        $attr{$name}{"Channel"} = $Channel if (!defined($attr{$name}{"Channel"}));
+        ##### Attribut: ChanelName = Sendersuchbegriffe in kl**k.de. Kann über TVSender Attribut gepflegt werden.
+        ##### Optionaler Parameter [3] bei Erstellung. Wird nicht überschrieben, wenn vorhanden!
+        if (!defined($ChannelName)) {
+            $ChannelName = $name;
+        }
+        $regex = qr/%20/p;
+        $subst = ' ';
+        $ChannelName = $ChannelName =~ s/$regex/$subst/rg;
+        $attr{$name}{"ChannelName"} = $ChannelName if (!defined($attr{$name}{"ChannelName"}));
+        ##### Attribut: Description = derzeit nicht weiter genutzt, wird nicht überschrieben, wennVorhanden
+        $attr{$name}{"Description"} = $name." = ".$ChannelName if (!defined($attr{$name}{"Description"}));
+        ##### Attribut: Logo = Standardpfad zur Senderlogo Datei
+        ##### Änderungen über das Attribut werden nicht überschrieben, wenn vorhanden
+        $attr{$name}{"Logo"} = "/opt/fhem/www/images/default/tvlogos/".$name.".png" if (!defined($attr{$name}{"Logo"}));
+        ##### Internal Variable: ermittelt in HTTPMOD Devices die URL für das Senderlogo
+        $hash->{Logo_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?src="\s*[\w\W]*?\s*(.*?)\s*" alt=';
+        ##### Attribut: HarmonyDevice = Besser in FHEM definiertes TV Receiver Devive, wird nicht überschrieben, wenn vorhanden
+        ##### Soll für die automatisierte SwitchCommand Generierung verwendet werden, wird nicht überschrieben, wenn vorhanden
+        $attr{$name}{"HarmonyDevice"} = "harmony_34915526" if (!defined($attr{$name}{"HarmonyDevice"}));
+        ##### Attribut: SwitchCommand = FHEM Befehle für das umschalten auf einen Receiver-Kanal
+        ##### Wird derzeit als Muster vorbelegt, muss individualisiert werden !!! Wird nicht überschrieben, wenn vorhanden
+        $Senderwechselbefehl = "";
+        foreach $i (0..length($Channel)-1) {
+            $Senderwechselbefehl = $Senderwechselbefehl.'set '.AttrVal($name,"HarmonyDevice","").' command Number'.substr($Channel, $i,0).';;';
+        }
+        $Senderwechselbefehl = $Senderwechselbefehl.'set '.AttrVal($name,"HarmonyDevice","").' command Select;;';
+        $attr{$name}{"SwitchCommand"} = $Senderwechselbefehl if (!defined($attr{$name}{"SwitchCommand"}));
+        ##### Attribut: NrFavorit wird für die Sortierung der Sender in rooms, groups und stateFormat Tabellen der HTTPMOD Devices
+        ##### Optionaler Parameter [4], wird nicht überschrieben, wenn vorhanden
+        ##### FHEM Standard Attribut: sortby wird parallel (mit führenden Nullen) zu NrFavorit gepflegt
+        $NrFavorit = $Channel if (!defined($NrFavorit));
+        if (defined($NrFavorit) or ($NrFavorit > 0)) {
+            $attr{$name}{"NrFavorit"} = $NrFavorit;
+            $attr{$name}{"sortby"} = substr("0000".$NrFavorit, -4, 4);
+        }
+        else {
+            $attr{$name}{"sortby"} = substr("0000".$Channel, -4, 4) if (!defined($attr{$name}{"sortby"}) or $attr{$name}{"sortby"} != substr("0000".$Channel, -4, 4));
+        }
+        
+        CommandAttr(undef,$name.' room TV-Programm') if( AttrVal($name,'room','none') eq 'none');
+        
+        ### Vorgaben für Regex setzen
+        TVSender_Change_Regex_Defaults($hash);
+        ### stateFormat setzen  ###
+        TVSender_stateFormat($hash);
+        ### Überwachung ob FHEM Initialisierung abgeschlossen ist und auf Veränderungen in den HTTPMOD Devices
+        my $notifiedDevices = 'global';
+        $notifiedDevices = $notifiedDevices.','
+            .InternalVal($name,"TV_Program_NOW","TV_Program_NOW").','
+            .InternalVal($name,"TV_Program_NEXT","TV_Program_NEXT").','
+            .InternalVal($name,"TV_Program_PT","TV_Program_PT").','
+            .InternalVal($name,"TV_Program_PTNEXT","TV_Program_PTNEXT");
+        $hash->{NOTIFYDEV} = $notifiedDevices;
+        
+        $modules{TVSender}{defptr}{$hash->{CHANNEL}} = $hash;
+    }
+    
+    return undef;
 }
 
 ### Hier beginnen die noch nicht umgesetzten Vorschläge für Prozeduren (wenn diese hier stehen: z.Zt. noch ohne Funktion)
 # Pflege der userattr in den HTTPMOD Devices
 sub TVSender_Update_HTTPMOD_Device_userattr($$) {
-  my ($hash,$httpmoddevice) = @_;
-  my $name = $hash->{"NAME"};
-  my $cmd = '';
-  my $errors = '';
+    my ($hash,$httpmoddevice) = @_;
+    my $name = $hash->{"NAME"};
+    my $cmd = '';
+    my $errors = '';
 
 }
 # Pfege der _Name _Regex Wertepaare für die userReadings der HTTMOD Devices
 sub TVSender_Update_HTTPMOD_Device_Regexes($$) {
-  my ($hash,$httpmoddevice) = @_;
-  my $name = $hash->{"NAME"};
-  my $cmd = '';
-  my $errors = '';
+    my ($hash,$httpmoddevice) = @_;
+    my $name = $hash->{"NAME"};
+    my $cmd = '';
+    my $errors = '';
 
 }
 # Pflege des stateFormat Attributes des TVSender Devices
 sub TVSender_Update_stateFormat($$) {
-  my ($hash,$httpmoddevice) = @_;
-  my $name = $hash->{"NAME"};
-  my $cmd = '';
-  my $errors = '';
+    my ($hash,$httpmoddevice) = @_;
+    my $name = $hash->{"NAME"};
+    my $cmd = '';
+    my $errors = '';
 
 }
 # Offene Erweiterungen ...
 ###
 
 # sub TV_Sender_Set_SwitchCommnand_Timer($$) {
-#   my ($hash,$time,$Channel) = @_;
-#   my $name = $hash->{"NAME"};
-#   my ($SWhour,$SWmin) = split($time,":");
-#   my $cmd = '';
-#   my $errors = '';
-#   my ($sec, $min, $hour, $mday, $month, $year) = TimeNow();
-#   my $timestamp = fhemTimeLocal(0, $SWmin, $SWhour, $mday, $month, $year);
-#   my $functionName = AttrVal($name,"SwitchCommand","");
-#   InternalTimer($timestamp, $functionName, $hash);
+    #   my ($hash,$time,$Channel) = @_;
+    #   my $name = $hash->{"NAME"};
+    #   my ($SWhour,$SWmin) = split($time,":");
+    #   my $cmd = '';
+    #   my $errors = '';
+    #   my ($sec, $min, $hour, $mday, $month, $year) = TimeNow();
+    #   my $timestamp = fhemTimeLocal(0, $SWmin, $SWhour, $mday, $month, $year);
+    #   my $functionName = AttrVal($name,"SwitchCommand","");
+    #   InternalTimer($timestamp, $functionName, $hash);
 # }
 # Regex Vorgaben setzen bzw. ändern
 sub TVSender_Change_Regex_Defaults($) {
-  my ($hash) = @_;
-  my $name = $hash->{"NAME"};
-  my $cmd = '';
-  my $errors = '';
-  my $ChannelName = AttrVal($name,"ChannelName",undef);
-  ##### Internal Variable: ermittelt in HTTPMOD Devices die URL für das Senderlogo
-  ##### Sie können nur mit Versions-Updates gepflegt werden
-  $hash->{Logo_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?src="\s*[\w\W]*?\s*(.*?)\s*" alt=';
-  ##### Internal Variablen für die Namen der HTTPMOD Devices festlegen
-  ##### Sie können nur mit Versions-Updates gepflegt werden
-  $hash->{TV_Program_NOW} = "TV_Program_NOW";
-  $hash->{TV_Program_NEXT} = "TV_Program_NEXT";
-  $hash->{TV_Program_PT} = "TV_Program_PT";
-  $hash->{TV_Program_PTNEXT} = "TV_Program_PTNEXT";
-  ##### Internal Variable: Vorgabe URL für TV_Program_NOW, TV_Program_NEXT, TV_Program_PT, TV_Program_PTNEXT
-  ##### Sie können nur mit Versions-Updates gepflegt werden
-  $hash->{TV_Program_NOW_URL} = "http://www.klack.de/fernsehprogramm/was-laeuft-gerade/0/0/all.html";
-  $hash->{TV_Program_NEXT_URL} = "http://www.klack.de/fernsehprogramm/was-laeuft-gerade/0/0/all.html";
-  $hash->{TV_Program_PT_URL} = "http://www.klack.de/fernsehprogramm/2015-im-tv/0/0/all.html";
-  $hash->{TV_Program_PTNEXT_URL} = "http://www.klack.de/fernsehprogramm/2015-im-tv/0/0/all.html";
-  ##### Internal Variablen: Vorgabe Regex
-  ##### Sie können nur mit Versions-Updates gepflegt werden
-  $hash->{FindChannelList_Regex} = qr/<tr class="[\w\W]*?Row">[\w\W]*?<td class="station">[\w\W]*?title="\s*(.*?)\s*"><img class/p;
-  ##### RegexVorgabenNOW_setzen
-  ####### für aktuelle laufende Sendung: Sendungsbezeichnung, Uhrzeit Beginn, Beschreibung, Bild, Detail-Link
-  $hash->{NOW_Title_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content">\s*<a[\w\W]*?>\s*(.*?)\s*<\/a>';
-  $hash->{NOW_Time_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time"\s*[\w\W]*?\s*(.*?)\s*\t<br\/>';
-  $hash->{NOW_Description_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content"\s*[\w\W]*?\s*(.*?)\s*<br\/><img';
-  $hash->{NOW_Image_Regex} = '<td class="image left">[\s]*<a[\s]*href[^>]* title="'.$ChannelName.':[^>]*><img\s*class="epgImage" src="(.*?)"';
-  $hash->{NOW_DetailLink_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content">\s*<a[\w\W]*?ref="\s*(.*?)\s*" title=';
-  ####### RegexVorgabenNEXT_setzen ### für anschliessend laufende Sendung: Sendungsbezeichnung, Uhrzeit Beginn, Beschreibung, Bild, Detail-Link
-  $hash->{NEXT_Title_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content">\s*<a[\w\W]*?>\s*(.*?)\s*<\/a>';
-  $hash->{NEXT_Time_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">\s*(.*?)\s*<div';
-  $hash->{NEXT_Description_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content"\s*[\w\W]*?\s*(.*?)\s*<br\/><img';
-  $hash->{NEXT_Image_Regex} = '<td class="image">[\s]*<a[\s]*href[^>]* title="'.$ChannelName.':[^>]*><img\s*class="epgImage" src="(.*?)"';
-  $hash->{NEXT_DetailLink_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content">\s*<a[\w\W]*?ref="\s*(.*?)\s*" title=';
-  ####### RegexVorgabenPT_setzten ### für zur PrimeTime laufenden Sendung: Sendungsbezeichnung, Uhrzeit Beginn, Beschreibung, Bild, Detail-Link
-  $hash->{PT_Title_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content">\s*<a[\w\W]*?>\s*(.*?)\s*<\/a>';
-  $hash->{PT_Time_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time"\s*[\w\W]*?\s*(.*?)\s*\t<br\/>';
-  $hash->{PT_Description_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content"\s*[\w\W]*?\s*(.*?)\s*<br\/><img';
-  $hash->{PT_Image_Regex} = '<td class="image left">[\s]*<a[\s]*href[^>]* title="'.$ChannelName.':[^>]*><img\s*class="epgImage" src="(.*?)"';
-  $hash->{PT_DetailLink_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content">\s*<a[\w\W]*?ref="\s*(.*?)\s*" title=';
-  ####### RegexVorgabenPTNEXT_setzen ### für nach der PrimeTime laufenden Sendung: Sendungsbezeichnung, Uhrzeit Beginn, Beschreibung, Bild, Detail-Link
-  $hash->{PTNEXT_Title_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content">\s*<a[\w\W]*?>\s*(.*?)\s*<\/a>';
-  $hash->{PTNEXT_Time_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">\s*(.*?)\s*<div';
-  $hash->{PTNEXT_Description_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content"\s*[\w\W]*?\s*(.*?)\s*<br\/><img';
-  $hash->{PTNEXT_Image_Regex} = '<td class="image">[\s]*<a[\s]*href[^>]* title="'.$ChannelName.':[^>]*><img\s*class="epgImage" src="(.*?)"';
-  $hash->{PTNEXT_DetailLink_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content">\s*<a[\w\W]*?ref="\s*(.*?)\s*" title=';
-
+    my ($hash) = @_;
+    
+    if( $hash->{CHANNEL} ) {
+        my $name = $hash->{"NAME"};
+        my $cmd = '';
+        my $errors = '';
+        my $ChannelName = AttrVal($name,"ChannelName",undef);
+        ##### Internal Variable: ermittelt in HTTPMOD Devices die URL für das Senderlogo
+        ##### Sie können nur mit Versions-Updates gepflegt werden
+        $hash->{Logo_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?src="\s*[\w\W]*?\s*(.*?)\s*" alt=';
+        ##### Internal Variablen für die Namen der HTTPMOD Devices festlegen
+        ##### Sie können nur mit Versions-Updates gepflegt werden
+        $hash->{TV_Program_NOW} = "TV_Program_NOW";
+        $hash->{TV_Program_NEXT} = "TV_Program_NEXT";
+        $hash->{TV_Program_PT} = "TV_Program_PT";
+        $hash->{TV_Program_PTNEXT} = "TV_Program_PTNEXT";
+        ##### Internal Variable: Vorgabe URL für TV_Program_NOW, TV_Program_NEXT, TV_Program_PT, TV_Program_PTNEXT
+        ##### Sie können nur mit Versions-Updates gepflegt werden
+        $hash->{TV_Program_NOW_URL} = "http://www.klack.de/fernsehprogramm/was-laeuft-gerade/0/0/all.html";
+        $hash->{TV_Program_NEXT_URL} = "http://www.klack.de/fernsehprogramm/was-laeuft-gerade/0/0/all.html";
+        $hash->{TV_Program_PT_URL} = "http://www.klack.de/fernsehprogramm/2015-im-tv/0/0/all.html";
+        $hash->{TV_Program_PTNEXT_URL} = "http://www.klack.de/fernsehprogramm/2015-im-tv/0/0/all.html";
+        ##### Internal Variablen: Vorgabe Regex
+        ##### Sie können nur mit Versions-Updates gepflegt werden
+        $hash->{FindChannelList_Regex} = qr/<tr class="[\w\W]*?Row">[\w\W]*?<td class="station">[\w\W]*?title="\s*(.*?)\s*"><img class/p;
+        ##### RegexVorgabenNOW_setzen
+        ####### für aktuelle laufende Sendung: Sendungsbezeichnung, Uhrzeit Beginn, Beschreibung, Bild, Detail-Link
+        $hash->{NOW_Title_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content">\s*<a[\w\W]*?>\s*(.*?)\s*<\/a>';
+        $hash->{NOW_Time_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time"\s*[\w\W]*?\s*(.*?)\s*\t<br\/>';
+        $hash->{NOW_Description_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content"\s*[\w\W]*?\s*(.*?)\s*<br\/><img';
+        $hash->{NOW_Image_Regex} = '<td class="image left">[\s]*<a[\s]*href[^>]* title="'.$ChannelName.':[^>]*><img\s*class="epgImage" src="(.*?)"';
+        $hash->{NOW_DetailLink_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content">\s*<a[\w\W]*?ref="\s*(.*?)\s*" title=';
+        ####### RegexVorgabenNEXT_setzen ### für anschliessend laufende Sendung: Sendungsbezeichnung, Uhrzeit Beginn, Beschreibung, Bild, Detail-Link
+        $hash->{NEXT_Title_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content">\s*<a[\w\W]*?>\s*(.*?)\s*<\/a>';
+        $hash->{NEXT_Time_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">\s*(.*?)\s*<div';
+        $hash->{NEXT_Description_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content"\s*[\w\W]*?\s*(.*?)\s*<br\/><img';
+        $hash->{NEXT_Image_Regex} = '<td class="image">[\s]*<a[\s]*href[^>]* title="'.$ChannelName.':[^>]*><img\s*class="epgImage" src="(.*?)"';
+        $hash->{NEXT_DetailLink_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content">\s*<a[\w\W]*?ref="\s*(.*?)\s*" title=';
+        ####### RegexVorgabenPT_setzten ### für zur PrimeTime laufenden Sendung: Sendungsbezeichnung, Uhrzeit Beginn, Beschreibung, Bild, Detail-Link
+        $hash->{PT_Title_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content">\s*<a[\w\W]*?>\s*(.*?)\s*<\/a>';
+        $hash->{PT_Time_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time"\s*[\w\W]*?\s*(.*?)\s*\t<br\/>';
+        $hash->{PT_Description_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content"\s*[\w\W]*?\s*(.*?)\s*<br\/><img';
+        $hash->{PT_Image_Regex} = '<td class="image left">[\s]*<a[\s]*href[^>]* title="'.$ChannelName.':[^>]*><img\s*class="epgImage" src="(.*?)"';
+        $hash->{PT_DetailLink_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<div class="content">\s*<a[\w\W]*?ref="\s*(.*?)\s*" title=';
+        ####### RegexVorgabenPTNEXT_setzen ### für nach der PrimeTime laufenden Sendung: Sendungsbezeichnung, Uhrzeit Beginn, Beschreibung, Bild, Detail-Link
+        $hash->{PTNEXT_Title_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content">\s*<a[\w\W]*?>\s*(.*?)\s*<\/a>';
+        $hash->{PTNEXT_Time_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">\s*(.*?)\s*<div';
+        $hash->{PTNEXT_Description_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content"\s*[\w\W]*?\s*(.*?)\s*<br\/><img';
+        $hash->{PTNEXT_Image_Regex} = '<td class="image">[\s]*<a[\s]*href[^>]* title="'.$ChannelName.':[^>]*><img\s*class="epgImage" src="(.*?)"';
+        $hash->{PTNEXT_DetailLink_Regex} = 'title="'.$ChannelName.'"><img[\w\W]*?<td class="time[\w\W]*?Row">[\w\W]*?<div[\w\W]*?<div class="content">\s*<a[\w\W]*?ref="\s*(.*?)\s*" title=';
+    }
 }
+
 # (NonBlocking) download des Senderlogos nach /opt/fhem/www/imgages/default/tvlogos
 sub TVSender_WGET_SenderLogo($$) {
   my ($hash,$httpmoddevice) = @_;
@@ -298,12 +349,16 @@ sub TVSender_Parameter_update ($) {
 }
 # Überwachung der 4 HTTPMOD Devices zur Pflege der Readings in TVSender Device
 sub TVSender_Notify($$) {
+
     my ($own_hash, $dev_hash) = @_;
+    
+    my $bhash = $modules{TVSender}{defptr}{BRIDGE};         #ermitteln des korrekten Hash Wertes vom Bridge Device
+    
     my $ownName = $own_hash->{NAME}; # own name / hash
     my $daytime = "";
     my $regex = "";
     my $subst = "";
-    return "" if(IsDisabled($ownName)); # Return without any further action if the module is disabled
+    return if(IsDisabled($ownName)); # Return without any further action if the module is disabled
     my $devName = $dev_hash->{NAME}; # Device that created the events
     my $events = deviceEvents($dev_hash,1);
     my $logofile = AttrVal($ownName,'Logo','/opt/fhem/www/images/default/tvlogos/'.$ownName.'\.png');
@@ -316,11 +371,22 @@ sub TVSender_Notify($$) {
     my $cmd = '';
     my $errors = '';
     return if( !$events );
+    
+    
     if($devName eq "global" && grep(m/^INITIALIZED|REREADCFG$/, @{$events}))
     {
       #TVSender_StatusRequest($own_hash,InternalVal($ownName,"TV_Program_NOW","TV_Program_NOW"));
 
     }
+    
+    TVSender_TimerGetData($bhash) if( (grep /^INITIALIZED$/,@{$events}
+                                                or grep /^DELETEATTR.$devName.disable$/,@{$events}
+                                                or grep /^DELETEATTR.$devName.interval$/,@{$events}
+                                                or grep /^MODIFIED.$devName$/,@{$events} 
+                                                or (grep /^DEFINED.$devName$/,@{$events} and $init_done)) and $own_hash eq $bhash);
+    
+    
+    
     foreach my $event (@{$events})
     {
       $event = "" if(!defined($event));
@@ -782,27 +848,52 @@ sub TVSender_Delete_HTTPMOD_Device_stateformat($$) {
 sub TVSender_Undef($$) {
     my ($hash, $arg) = @_;
     my $name = $hash->{"NAME"};
-    my $errors = "";
-    my $cmd = "";
-    my $readingsnamepart = "reading".AttrVal($name,"sortby","");
-    my $regex = '';
-    my $subst = '';
-    my $httpmoddevice = '';
-    $httpmoddevice = InternalVal($name,'TV_Program_NOW','TV_Program_NOW');
-    TVSender_Delete_HTTPMOD_Device_userattr($hash,$httpmoddevice);
-    TVSender_Delete_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
-    $httpmoddevice = InternalVal($name,'TV_Program_NEXT','TV_Program_NEXT');
-    TVSender_Delete_HTTPMOD_Device_userattr($hash,$httpmoddevice);
-    TVSender_Delete_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
-    $httpmoddevice = InternalVal($name,'TV_Program_PT','TV_Program_PT');
-    TVSender_Delete_HTTPMOD_Device_userattr($hash,$httpmoddevice);
-    TVSender_Delete_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
-    $httpmoddevice = InternalVal($name,'TV_Program_PTNEXT','TV_Program_PTNEXT');
-    TVSender_Delete_HTTPMOD_Device_userattr($hash,$httpmoddevice);
-    TVSender_Delete_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
-    $cmd = 'rm '.AttrVal($name,"Logo","");
-    $errors = `$cmd`;
-    return "";
+    
+    
+    
+    if( $hash->{BRIDGE} ) {
+        RemoveInternalTimer( $hash );
+        delete $modules{TVSender}{defptr}{BRIDGE} if( defined($modules{TVSender}{defptr}{BRIDGE}) and $hash->{BRIDGE} );
+    } 
+    
+    elsif( $hash->{CHANNEL} ) {
+
+        delete $modules{TVSender}{defptr}{$hash->{CHANNEL}};
+    
+        my $errors = "";
+        my $cmd = "";
+        my $readingsnamepart = "reading".AttrVal($name,"sortby","");
+        my $regex = '';
+        my $subst = '';
+        my $httpmoddevice = '';
+        $httpmoddevice = InternalVal($name,'TV_Program_NOW','TV_Program_NOW');
+        TVSender_Delete_HTTPMOD_Device_userattr($hash,$httpmoddevice);
+        TVSender_Delete_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
+        $httpmoddevice = InternalVal($name,'TV_Program_NEXT','TV_Program_NEXT');
+        TVSender_Delete_HTTPMOD_Device_userattr($hash,$httpmoddevice);
+        TVSender_Delete_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
+        $httpmoddevice = InternalVal($name,'TV_Program_PT','TV_Program_PT');
+        TVSender_Delete_HTTPMOD_Device_userattr($hash,$httpmoddevice);
+        TVSender_Delete_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
+        $httpmoddevice = InternalVal($name,'TV_Program_PTNEXT','TV_Program_PTNEXT');
+        TVSender_Delete_HTTPMOD_Device_userattr($hash,$httpmoddevice);
+        TVSender_Delete_HTTPMOD_Device_stateformat($hash,$httpmoddevice);
+        $cmd = 'rm '.AttrVal($name,"Logo","");
+        $errors = `$cmd`;
+    
+    
+    
+        foreach my $d(sort keys %{$modules{TVSender}{defptr}}) {
+            my $hash = $modules{TVSender}{defptr}{$d};
+            my $client = $hash->{CHANNEL};
+
+            return if( $client );
+            my $name = $hash->{NAME};
+            CommandDelete( undef, $name );
+        }
+    }
+
+    return undef;
 }
 # Umbenennung ist nicht möglich
 sub TVSender_Rename($$) {
@@ -847,16 +938,27 @@ sub TVSender_Get($@) {
     .'<td style="vertical-align: top;;text-align: left;;font-weight: bold;;font-size: larger;;width: 400px;;white-space: normal" ><a href="/fhem?cmd=set%20'.$name.'%20Switch2Channel%201" >'.ReadingsVal($name,"TV_Program_PTNEXT_Title","").'</a><br /><div style="vertical-align: top;;text-align: left;;font-weight: initial;;font-size: smaller">'.ReadingsVal($name,"TV_Program_PTNEXT_Description","").'</div></td>'
     .'<td style="vertical-align: top;;width: 200px" >'.ReadingsVal($name,"TV_Program_PTNEXT_Image","").'</td></tr>'.'</table></html>';
     return $table;
-  }
-  else {
-    $list = ""
-    ."AktuelleSendung:noArg"
-    ." NächsteSendung:noArg"
-    ." PrimeTimeSendung:noArg"
-    ." PrimeTimeSendungfolgend:noArg" ;
+    }
+    
+    elsif ($cmd eq 'update') {
+        if( not IsDisabled($name) ) {
+            unshift( @{$hash->{actionQueue}}, AttrVal($name,'tvCurrentlyUrl','none') );
+            unshift( @{$hash->{actionQueue}}, AttrVal($name,'tv2015Url','none') );
+            
+            readingsSingleUpdate($hash,'state','run TVSender_MasterFetchProgramInformations',1);
+            TVSender_MasterFetchProgramInformations($hash);
+        }
+    }
+    else {
+        $list = ""
+        ."AktuelleSendung:noArg"
+        ." NächsteSendung:noArg"
+        ." PrimeTimeSendung:noArg"
+        ." PrimeTimeSendungfolgend:noArg" if( not $hash->{BRIDGE} );
+        $list .= "update:noArg" if( $hash->{BRIDGE} );
 
-    return "Unknown argument $cmd, choose one of $list";
-  }
+        return "Unknown argument $cmd, choose one of $list";
+    }
 }
 # Set Befehle für das TVSender Device
 sub TVSender_Set($@) {
@@ -968,7 +1070,7 @@ sub TVSender_Set($@) {
       ." UpdateAll:noArg"
       ." StatusRequest:Aktuell,Anschliessend,PrimeTime,Danach,Alle"
       ." SetTimerSwitch2Channel"
-      ." ChannelName:".join(",",@senderlist);
+      ." ChannelName:".join(",",@senderlist) if( not $hash->{BRIDGE} );
 
       return "Unknown argument $cmd, choose one of $list";
     }
@@ -1019,6 +1121,168 @@ sub TVSender_Attr(@) {
 
     return;
 }
+
+sub TVSender_MasterFetchProgramInformations($) {
+
+    my ($hash)      = @_;                     # der Hash ist hier immer der Hash des Bridge Devices
+    
+    my $name        = $hash->{NAME};
+    my $uri         = pop( @{$hash->{actionQueue}} );
+
+
+    readingsSingleUpdate($hash,'state','fetch data - ' . scalar(@{$hash->{actionQueue}}) . ' entries in the Queue',1);
+
+    my $param = {
+            url         => "http://www.klack.de/fernsehprogramm/".$uri,
+            uri         => "$uri",
+            timeout     => 5,
+            method      => 'GET',
+            hash        => $hash,
+            doTrigger   => 1,
+            callback    => \&TVSender_MasterErrorHandling,
+        };
+        
+    $param->{cl} = $hash->{CL} if( $hash->{BRIDGE} and ref($hash->{CL}) eq 'HASH' );
+    
+    HttpUtils_NonblockingGet($param);
+    Log3 $name, 3, "TVSender ($name) - Send with URL: http://www.klack.de/fernsehprogramm/$uri";
+}
+
+sub TVSender_MasterErrorHandling($$$) {
+
+    my ($param,$err,$data)  = @_;
+    
+    my $hash                = $param->{hash};
+    my $name                = $hash->{NAME};
+
+
+    #Log3 $name, 3, "TVSender ($name) - Recieve DATA: $data";
+    #Log3 $name, 3, "TVSender ($name) - Recieve HTTP Code: $param->{code}";
+    #Log3 $name, 3, "TVSender ($name) - Recieve Error: $err";
+
+    ### Begin Error Handling
+    
+    if( defined( $err ) ) {
+        if( $err ne "" ) {
+            if( $param->{cl} && $param->{cl}{canAsyncOutput} ) {
+                asyncOutput( $param->{cl}, "Request Error: $err\r\n" );
+            }
+
+            readingsBeginUpdate( $hash );
+            readingsBulkUpdate( $hash, 'state', $err, 1);
+            readingsBulkUpdate( $hash, 'lastRequestError', $err, 1 );
+            readingsEndUpdate( $hash, 1 );
+            
+            Log3 $name, 3, "TVSender ($name) - RequestERROR: $err";
+
+            return;
+        }
+    }
+
+    if( $data eq "" and exists( $param->{code} ) && $param->{code} ne 200 ) {
+        #if( $param->{cl} && $param->{cl}{canAsyncOutput} ) {
+        #    asyncOutput( $param->{cl}, "Request Error: $param->{code}\r\n" );
+        #}
+    
+        readingsBeginUpdate( $hash );
+        readingsBulkUpdate( $hash, 'state', $param->{code}, 1 );
+
+        readingsBulkUpdate( $hash, 'lastRequestError', $param->{code}, 1 );
+
+        Log3 $name, 3, "TVSender ($name) - RequestERROR: ".$param->{code};
+
+        readingsEndUpdate( $hash, 1 );
+    
+        Log3 $name, 3, "TVSender ($name) - RequestERROR: received http code ".$param->{code}." without any data after requesting";
+
+        return;
+    }
+
+    if( ( $data =~ /Error/i ) and exists( $param->{code}) and $param->{code} ne 200 ) {
+        #if( $param->{cl} && $param->{cl}{canAsyncOutput} ) {
+        #    asyncOutput( $param->{cl}, "Request Error: $param->{code}\r\n" );
+        #}
+    
+        readingsBeginUpdate( $hash );
+        
+        readingsBulkUpdate( $hash, 'state', $param->{code}, 1 );
+        readingsBulkUpdate( $hash, "lastRequestError", $param->{code}, 1 );
+
+        readingsEndUpdate( $hash, 1 );
+    
+        Log3 $name, 3, "TVSender ($name) - statusRequestERROR: http error ".$param->{code};
+
+        return;
+        ### End Error Handling
+    }
+    
+    #Log3 $name, 3, "TVSender ($name) - Recieve DATA: $data";
+    
+    TVSender_MasterFetchProgramInformations($hash)
+    if( defined($hash->{actionQueue}) and scalar(@{$hash->{actionQueue}}) > 0 );
+    
+    TVSender_MasterResponseProcessing($hash,$data,$param);
+}
+
+sub TVSender_MasterResponseProcessing($$$) {
+
+    my ($hash,$data,$param) = @_;
+    
+    my $name                = $hash->{NAME};
+
+    Log3 $name, 5, "TVSender ($name) - Recieve DATA TVSender_ResponseProcessing: $data";
+    
+    
+    
+    ####### Hier werden die Daten kurz geprüft und dann in den entsprechenden Hash geschrieben.
+    $hash->{helper}{bufCurrent} = $data if( $param->{uri} eq AttrVal($name,'tvCurrentlyUrl','none') );
+    $hash->{helper}{buf2015}    = $data if( $param->{uri} eq AttrVal($name,'tv2015Url','none') );
+    
+    TVSender_MasterWriteReadings($hash);
+}
+
+sub TVSender_MasterWriteReadings($) {
+
+    my $hash        = shift;
+    
+    
+    readingsBeginUpdate($hash);
+    
+    readingsBulkUpdateIfChanged($hash,'actionQueue',scalar(@{$hash->{actionQueue}}) . ' entries in the Queue');
+    readingsBulkUpdateIfChanged($hash,'state',(defined($hash->{actionQueue}) and scalar(@{$hash->{actionQueue}}) == 0 ? 'ready' : 'fetch data - ' . scalar(@{$hash->{actionQueue}}) . ' paths in actionQueue'));
+    
+    readingsEndUpdate($hash,1);
+}
+
+sub TVSender_TimerGetData($) {
+    
+    my $hash    = shift;                    # der Hash ist hier immer der Hash des Bridge Devices
+    my $name    = $hash->{NAME};
+
+
+    RemoveInternalTimer($hash);
+
+    if( defined($hash->{actionQueue}) and scalar(@{$hash->{actionQueue}}) == 0 ) {
+        if( not IsDisabled($name) ) {
+            unshift( @{$hash->{actionQueue}}, AttrVal($name,'tvCurrentlyUrl','none') );
+            unshift( @{$hash->{actionQueue}}, AttrVal($name,'tv2015Url','none') );
+            
+            readingsSingleUpdate($hash,'state','run TVSender_MasterFetchProgramInformations',1);
+            
+            TVSender_MasterFetchProgramInformations($hash);
+        
+        } else {
+            readingsSingleUpdate($hash,'state','disabled',1);
+        }
+    }
+    
+    InternalTimer( gettimeofday()+$hash->{INTERVAL}, 'TVSender_TimerGetData', $hash );
+    Log3 $name, 3, "TVSender ($name) - Call InternalTimer TVSender_TimerGetData";
+}
+
+
+
+
 
 1;
 
