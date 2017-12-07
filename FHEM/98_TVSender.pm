@@ -65,7 +65,7 @@ sub TVSender_Define($$) {
 
         $hash->{BRIDGE}                     = 1;
         $modules{TVSender}{defptr}{BRIDGE}  = $hash;
-        $hash->{INTERVAL}                   = 300;
+        $hash->{INTERVAL}                   = 1800;
         $hash->{NOTIFYDEV}                  = "global";
         $hash->{actionQueue}                = [];
         
@@ -945,8 +945,8 @@ sub TVSender_Get($@) {
             unshift( @{$hash->{actionQueue}}, AttrVal($name,'tvCurrentlyUrl','none') );
             unshift( @{$hash->{actionQueue}}, AttrVal($name,'tv2015Url','none') );
             
-            readingsSingleUpdate($hash,'state','run TVSender_FetchProgramInformations',1);
-            TVSender_FetchProgramInformations($hash);
+            readingsSingleUpdate($hash,'state','run TVSender_MasterFetchProgramInformations',1);
+            TVSender_MasterFetchProgramInformations($hash);
         }
     }
     else {
@@ -1122,7 +1122,7 @@ sub TVSender_Attr(@) {
     return;
 }
 
-sub TVSender_FetchProgramInformations($) {
+sub TVSender_MasterFetchProgramInformations($) {
 
     my ($hash)      = @_;                     # der Hash ist hier immer der Hash des Bridge Devices
     
@@ -1134,20 +1134,21 @@ sub TVSender_FetchProgramInformations($) {
 
     my $param = {
             url         => "http://www.klack.de/fernsehprogramm/".$uri,
+            uri         => "$uri",
             timeout     => 5,
             method      => 'GET',
             hash        => $hash,
             doTrigger   => 1,
-            callback    => \&TVSender_ErrorHandling,
+            callback    => \&TVSender_MasterErrorHandling,
         };
         
     $param->{cl} = $hash->{CL} if( $hash->{BRIDGE} and ref($hash->{CL}) eq 'HASH' );
     
     HttpUtils_NonblockingGet($param);
-    Log3 $name, 3, "TVSender ($name) - Send with URI: http://www.klack.de/fernsehprogramm/$uri";
+    Log3 $name, 3, "TVSender ($name) - Send with URL: http://www.klack.de/fernsehprogramm/$uri";
 }
 
-sub TVSender_ErrorHandling($$$) {
+sub TVSender_MasterErrorHandling($$$) {
 
     my ($param,$err,$data)  = @_;
     
@@ -1156,8 +1157,8 @@ sub TVSender_ErrorHandling($$$) {
 
 
     #Log3 $name, 3, "TVSender ($name) - Recieve DATA: $data";
-    Log3 $name, 3, "TVSender ($name) - Recieve HTTP Code: $param->{code}";
-    Log3 $name, 3, "TVSender ($name) - Recieve Error: $err";
+    #Log3 $name, 3, "TVSender ($name) - Recieve HTTP Code: $param->{code}";
+    #Log3 $name, 3, "TVSender ($name) - Recieve Error: $err";
 
     ### Begin Error Handling
     
@@ -1197,7 +1198,7 @@ sub TVSender_ErrorHandling($$$) {
         return;
     }
 
-    if( ( $data =~ /Error/i ) and exists( $param->{code} ) ) {
+    if( ( $data =~ /Error/i ) and exists( $param->{code}) and $param->{code} ne 200 ) {
         #if( $param->{cl} && $param->{cl}{canAsyncOutput} ) {
         #    asyncOutput( $param->{cl}, "Request Error: $param->{code}\r\n" );
         #}
@@ -1217,24 +1218,40 @@ sub TVSender_ErrorHandling($$$) {
     
     #Log3 $name, 3, "TVSender ($name) - Recieve DATA: $data";
     
-    TVSender_FetchProgramInformations($hash)
+    TVSender_MasterFetchProgramInformations($hash)
     if( defined($hash->{actionQueue}) and scalar(@{$hash->{actionQueue}}) > 0 );
     
-    TVSender_ResponseProcessing($hash,$data,$param);
+    TVSender_MasterResponseProcessing($hash,$data,$param);
 }
 
-sub TVSender_ResponseProcessing($$$) {
+sub TVSender_MasterResponseProcessing($$$) {
 
     my ($hash,$data,$param) = @_;
     
     my $name                = $hash->{NAME};
 
-    #Log3 $name, 3, "TVSender ($name) - Recieve DATA TVSender_ResponseProcessing: $data";
+    Log3 $name, 5, "TVSender ($name) - Recieve DATA TVSender_ResponseProcessing: $data";
+    
     
     
     ####### Hier werden die Daten kurz geprüft und dann in den entsprechenden Hash geschrieben.
+    $hash->{helper}{bufCurrent} = $data if( $param->{uri} eq AttrVal($name,'tvCurrentlyUrl','none') );
+    $hash->{helper}{buf2015}    = $data if( $param->{uri} eq AttrVal($name,'tv2015Url','none') );
+    
+    TVSender_MasterWriteReadings($hash);
+}
+
+sub TVSender_MasterWriteReadings($) {
+
+    my $hash        = shift;
     
     
+    readingsBeginUpdate($hash);
+    
+    readingsBulkUpdateIfChanged($hash,'actionQueue',scalar(@{$hash->{actionQueue}}) . ' entries in the Queue');
+    readingsBulkUpdateIfChanged($hash,'state',(defined($hash->{actionQueue}) and scalar(@{$hash->{actionQueue}}) == 0 ? 'ready' : 'fetch data - ' . scalar(@{$hash->{actionQueue}}) . ' paths in actionQueue'));
+    
+    readingsEndUpdate($hash,1);
 }
 
 sub TVSender_TimerGetData($) {
@@ -1250,9 +1267,9 @@ sub TVSender_TimerGetData($) {
             unshift( @{$hash->{actionQueue}}, AttrVal($name,'tvCurrentlyUrl','none') );
             unshift( @{$hash->{actionQueue}}, AttrVal($name,'tv2015Url','none') );
             
-            readingsSingleUpdate($hash,'state','run TVSender_FetchProgramInformations',1);
+            readingsSingleUpdate($hash,'state','run TVSender_MasterFetchProgramInformations',1);
             
-            TVSender_FetchProgramInformations($hash);
+            TVSender_MasterFetchProgramInformations($hash);
         
         } else {
             readingsSingleUpdate($hash,'state','disabled',1);
