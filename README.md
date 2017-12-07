@@ -7,7 +7,13 @@ Die optische Ausgabeformatierung soll kein Ersatz für die wesentlich flexiblere
 Eine ausführlichere Beschreibung befindet sich im **[Wiki](https://github.com/supernova1963/TVSender/wiki)**.
 
 A C H T U N G: 
-Z.Zt. funktioniert die automatische Sortierung der Sender in den HTTPMOD Devices noch nicht (jeder hinzugefügte bzw. mit updateAll aktualisierte Sender wird unten angehängt! Wer auf eine geordnete Ausgabe in den HTTPMOD Devices Wert legt, sollte die Sender in der gewünschten Reihenfolge anlegen!
+
+Die automatische Sortierung der Sender in den HTTPMOD Devices funktioniert jetzt.
+
+H I N W E I S:
+
+Bei *Sendernamen mit Sonderzeichen:*
+Definition mit Sonderzeichen bereinigten Device-Name OHNE Angabe des ChannelName. Nachdem der Sender angelegt wurde, diesen in der Detailansicht öffnen und mit dem angebotenen SET - Befehl ChannelName den Sender in der DropDown Liste auswählen und mit dem Knopf set speichern. Wenn danach der SET - Befehl AutoCreate ausgeführt wird wird der korrekte Suchbegriff für die Suche in der HTML Seite erfolgreich umgesetzt.
 
 ## Installation
 update add https://raw.githubusercontent.com/supernova1963/TVSender/master/controls_TVSender.txt
